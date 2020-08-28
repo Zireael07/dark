@@ -12,6 +12,16 @@ typedef uint64_t	u64;
 typedef int32_t		i32;
 typedef int64_t		i64;
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
+struct context {
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+    SDL_Texture *screen;
+    bool should_quit;
+};
 
 void render_screen(SDL_Renderer *renderer, SDL_Texture *screen) {
 
@@ -39,6 +49,8 @@ int main() {
 	SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	SDL_Texture *screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	struct context ctx = {.window = window, .screen = screen, .renderer = renderer, .should_quit = false};
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(main_loop, &ctx, -1, 1);
