@@ -40,6 +40,10 @@ int main() {
 
 	SDL_Texture *screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop_arg(main_loop, &ctx, -1, 1);
+#else
+
 	bool done = false;
 	while (!done) {
 
@@ -55,6 +59,7 @@ int main() {
 
 		render_screen(renderer, screen);
 	}
+# endif
 
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
