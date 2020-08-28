@@ -23,6 +23,7 @@ struct context {
     bool should_quit;
 };
 
+// looks like functions have to be defined before use in C
 void render_screen(SDL_Renderer *renderer, SDL_Texture *screen) {
 
 	u32 *pixels = calloc(SCREEN_WIDTH * SCREEN_HEIGHT, sizeof(u32));
@@ -31,6 +32,25 @@ void render_screen(SDL_Renderer *renderer, SDL_Texture *screen) {
 	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, screen, NULL, NULL);
 	SDL_RenderPresent(renderer);
+}
+
+void main_loop(void *context) {
+	struct context *ctx = (struct context *)context;
+	SDL_Event event;
+		
+	while (SDL_PollEvent(&event) != 0) {
+
+		if (event.type == SDL_QUIT) {
+#ifdef __EMSCRIPTEN__
+            emscripten_cancel_main_loop();
+#endif
+			ctx->should_quit = true;
+			break;
+		}
+
+	}
+
+	render_screen(ctx->renderer, ctx->screen);
 }
 
 int main() {
@@ -57,19 +77,8 @@ int main() {
 #else
 
 	bool done = false;
-	while (!done) {
-
-		SDL_Event event;
-		while (SDL_PollEvent(&event) != 0) {
-
-			if (event.type == SDL_QUIT) {
-				done = true;
-				break;
-			}
-
-		}
-
-		render_screen(renderer, screen);
+	while (!ctx.should_quit) {
+		main_loop(&ctx);
 	}
 # endif
 
