@@ -1,0 +1,20 @@
+name: "emsdk"
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mymindstorm/setup-emsdk@v6
+
+      - name: Verify
+        run: emcc -v
+
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2 # If you're using actions/checkout@v2 you must set persist-credentials to false in most cases for the deployment to work correctly.
+        with:
+          persist-credentials: false
+
+      - name: Build
+      #  run: make -d
+        run: emcc -Wall -Wextra -Wpedantic -g -O0 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS=["png"] -s ALLOW_MEMORY_GROWTH=1 --no-heap-copy --shell-file shell_minimal.html dark.c -o index.html
