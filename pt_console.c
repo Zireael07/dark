@@ -26,6 +26,7 @@ typedef unsigned char asciiChar;
 
 #define COLOR_FROM_RGBA(r, g, b, a) ((r << 24) | (g << 16) | (b << 8) | a)
 
+#include "stdio.h"
 
 /* Console Helper Types */
 
@@ -312,7 +313,9 @@ PT_FillBlend(u32 *pixels, u32 pixelsPerRow, PT_Rect *destRect, u32 color)
 internal PT_Rect 
 PT_RectForGlyph(asciiChar c, PT_Font *font) {
     i32 idx = c - font->firstCharInAtlas;
+    printf("%d", font->charWidth);
     i32 charsPerRow = (font->atlasWidth / font->charWidth);
+
     i32 xOffset = (idx % charsPerRow) * font->charWidth;
     i32 yOffset = (idx / charsPerRow) * font->charHeight;
 
