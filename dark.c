@@ -104,7 +104,7 @@ int main() {
 	PT_Console *console = PT_ConsoleInit(SCREEN_WIDTH, SCREEN_HEIGHT, 
 										 NUM_ROWS, NUM_COLS);
 
-	PT_ConsoleSetBitmapFont(console, "./terminal16x16.png", 0, 16, 16);
+	PT_ConsoleSetBitmapFont(console, "assets/terminal16x16.png", 0, 16, 16);
 
 	player.pos_x = 10;
 	player.pos_y = 10;

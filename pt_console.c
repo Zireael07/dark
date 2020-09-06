@@ -313,7 +313,7 @@ PT_FillBlend(u32 *pixels, u32 pixelsPerRow, PT_Rect *destRect, u32 color)
 internal PT_Rect 
 PT_RectForGlyph(asciiChar c, PT_Font *font) {
     i32 idx = c - font->firstCharInAtlas;
-    printf("char width: %d \n", font->charWidth);
+    //printf("char width: %d \n", font->charWidth);
     i32 charsPerRow = (font->atlasWidth / font->charWidth);
     printf("chars in row %d \n", charsPerRow);
 
