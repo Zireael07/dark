@@ -189,7 +189,7 @@ var Module = typeof Module !== 'undefined' ? Module : {};
     }
   
    }
-   loadPackage({"files": [{"filename": "/assets/terminal16x16.png", "start": 0, "end": 8240, "audio": 0}], "remote_package_size": 8240, "package_uuid": "1f3eebf2-75c1-417c-b545-bca7c5f66ce8"});
+   loadPackage({"files": [{"filename": "/assets/terminal16x16.png", "start": 0, "end": 8240, "audio": 0}], "remote_package_size": 8240, "package_uuid": "fdd721a2-9c5f-454b-b601-7e6598d469ef"});
   
   })();
   
@@ -807,8 +807,8 @@ var wasmMemory;
 // so this creates a (non-native-wasm) table for us.
 
 var wasmTable = new WebAssembly.Table({
-  'initial': 574,
-  'maximum': 574,
+  'initial': 576,
+  'maximum': 576,
   'element': 'anyfunc'
 });
 
@@ -1428,11 +1428,11 @@ function updateGlobalBufferAndViews(buf) {
 }
 
 var STATIC_BASE = 1024,
-    STACK_BASE = 5311168,
+    STACK_BASE = 5312368,
     STACKTOP = STACK_BASE,
-    STACK_MAX = 68288,
-    DYNAMIC_BASE = 5311168,
-    DYNAMICTOP_PTR = 68272;
+    STACK_MAX = 69488,
+    DYNAMIC_BASE = 5312368,
+    DYNAMICTOP_PTR = 69472;
 
 assert(STACK_BASE % 16 === 0, 'stack must start aligned');
 assert(DYNAMIC_BASE % 16 === 0, 'heap must start aligned');
@@ -1971,7 +1971,7 @@ var ASM_CONSTS = {
 
 
 
-// STATICTOP = STATIC_BASE + 67264;
+// STATICTOP = STATIC_BASE + 68464;
 /* global initializers */  __ATINIT__.push({ func: function() { ___wasm_call_ctors() } });
 
 
@@ -6503,7 +6503,7 @@ var ASM_CONSTS = {
     }
 
   function _emscripten_get_sbrk_ptr() {
-      return 68272;
+      return 69472;
     }
 
   function _emscripten_glActiveTexture(x0) { GLctx['activeTexture'](x0) }
