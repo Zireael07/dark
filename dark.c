@@ -1,3 +1,8 @@
+/*
+dark.c - main Dark Twilight file 
+*/
+
+#include "assert.h"
 #include <SDL2/SDL.h>
 
 #define SCREEN_WIDTH	1280
@@ -22,23 +27,19 @@ typedef int64_t		i64;
 
 #include "pt_console.c"
 
-typedef struct {
-	u8 pos_x;
-	u8 pos_y;
-} Player;
-
-
-global_variable Player player;
-
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+
+// our own stuff starts here
+#include "ecs.c"
 
 struct context {
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Texture *screen;
 	PT_Console *console;
+	GameObject *player; //hack for now!
     bool should_quit;
 };
 
@@ -48,12 +49,39 @@ void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, PT_Console *cons
 	u32 *pixels = calloc(SCREEN_WIDTH * SCREEN_HEIGHT, sizeof(u32));
 	PT_ConsoleClear(console);
 
-	PT_ConsolePutCharAt(console, '@', player.pos_x, player.pos_y, 0xFFFFFFFF, 0x000000FF);
+	//PT_ConsolePutCharAt(console, '@', player.pos_x, player.pos_y, 0xFFFFFFFF, 0x000000FF);
+	for (u32 i = 1; i < MAX_GO; i++) {
+		if (renderableComps[i].objectId > 0) {
+			Position *p = (Position *)getComponentForGameObject(&gameObjects[i], COMP_POSITION);
+			PT_ConsolePutCharAt(console, renderableComps[i].glyph, p->x, p->y, 
+								renderableComps[i].fgColor, renderableComps[i].bgColor);
+		}
+	}
 
 	SDL_UpdateTexture(screen, NULL, console->pixels, SCREEN_WIDTH * sizeof(u32));
 	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, screen, NULL, NULL);
 	SDL_RenderPresent(renderer);
+}
+
+bool canMove(Position pos) {
+	bool moveAllowed = true;
+
+	if ((pos.x >= 0) && (pos.x < NUM_COLS) && (pos.y >= 0) && (pos.y < NUM_ROWS)) {
+		for (u32 i = 1; i < MAX_GO; i++) {
+			Position p = positionComps[i];
+			if ((p.objectId > 0) && (p.x == pos.x) && (p.y == pos.y)) {
+				if (physicalComps[i].blocksMovement == true) {
+					moveAllowed = false;
+				}
+			}
+		}
+
+	} else {
+		moveAllowed = false;
+	}
+
+	return moveAllowed;
 }
 
 /* What it says on the tin */
@@ -72,11 +100,24 @@ void main_loop(void *context) {
 		}
 
 		SDL_Keycode key = event.key.keysym.sym;
+		Position *playerPos = (Position *)getComponentForGameObject(ctx->player, COMP_POSITION);
 
-        if (key == SDLK_UP) { if (player.pos_y > 0) { player.pos_y -= 1; } }
-        if (key == SDLK_DOWN) { if (player.pos_y < NUM_ROWS - 1) { player.pos_y += 1; } }
-        if (key == SDLK_LEFT) { if (player.pos_x > 0) { player.pos_x -= 1; } }
-        if (key == SDLK_RIGHT) { if (player.pos_x < NUM_COLS - 1) { player.pos_x += 1; } }
+        if (key == SDLK_UP) {
+				Position newPos = {playerPos->objectId, playerPos->x, playerPos->y - 1};
+			 	if (canMove(newPos)) { addComponentToGameObject(ctx->player, COMP_POSITION, &newPos); } 
+			}
+        if (key == SDLK_DOWN) { 
+				Position newPos = {playerPos->objectId, playerPos->x, playerPos->y + 1};
+				if (canMove(newPos)) { addComponentToGameObject(ctx->player, COMP_POSITION, &newPos); } 
+			}
+        if (key == SDLK_LEFT) { 
+				Position newPos = {playerPos->objectId, playerPos->x - 1, playerPos->y};
+				if (canMove(newPos)) { addComponentToGameObject(ctx->player, COMP_POSITION, &newPos); } 
+			}
+        if (key == SDLK_RIGHT) { 
+				Position newPos = {playerPos->objectId, playerPos->x + 1, playerPos->y};
+				if (canMove(newPos)) { addComponentToGameObject(ctx->player, COMP_POSITION, &newPos); } 
+			}
 
 	}
 
@@ -106,10 +147,24 @@ int main() {
 
 	PT_ConsoleSetBitmapFont(console, "assets/terminal16x16.png", 0, 16, 16);
 
-	player.pos_x = 10;
-	player.pos_y = 10;
+	GameObject *player = createGameObject();
+	Position pos = {player->id, 10, 10};
+	addComponentToGameObject(player, COMP_POSITION, &pos);
+	Renderable rnd = {player->id, '@', 0x00FFFFFF, 0x000000FF};
+	addComponentToGameObject(player, COMP_RENDERABLE, &rnd);
+	Physical phys = {player->id, true, true};
+	addComponentToGameObject(player, COMP_PHYSICAL, &phys);
 
-	struct context ctx = {.window = window, .screen = screen, .renderer = renderer, .console = console, .should_quit = false};
+	//TODO: do I want walls to be Game Objects?
+	GameObject *wall = createGameObject();
+	Position wallPos = {wall->id, 30, 25};
+	addComponentToGameObject(wall, COMP_POSITION, &wallPos);
+	Renderable wallRnd = {wall->id, '#', 0xFFFFFFFF, 0x000000FF};
+	addComponentToGameObject(wall, COMP_RENDERABLE, &wallRnd);
+	Physical wallPhys = {wall->id, true, true};
+	addComponentToGameObject(wall, COMP_PHYSICAL, &wallPhys);
+
+	struct context ctx = {.window = window, .screen = screen, .renderer = renderer, .console = console, .player = player, .should_quit = false};
 
 /* Main loop handling */
 #ifdef __EMSCRIPTEN__
