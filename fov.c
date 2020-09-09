@@ -22,6 +22,7 @@ float line_slope_between(float x1, float y1, float x2, float y2);
 FovCell map_cell_for_local_cell(u8 sector, FovCell heroMapCell, FovCell cellToTranslate);
 
 global_variable u32 fovMap[MAP_WIDTH][MAP_HEIGHT];
+global_variable u32 seenMap[MAP_WIDTH][MAP_HEIGHT];
 
 internal Shadow knownShadows[10];
 internal u8 shadowCount = 0;
@@ -38,6 +39,7 @@ void fov_calculate(u32 heroX, u32 heroY, u32 fovMap[][MAP_HEIGHT]) {
 
 	// Mark hero cell visible
 	fovMap[heroX][heroY] = 1;
+	seenMap[heroX][heroY] = 1;
 
 	// Loop through all 8 sectors around the player
 	for (u8 sector = 1; sector <= 8; sector++) {
@@ -63,6 +65,8 @@ void fov_calculate(u32 heroX, u32 heroY, u32 fovMap[][MAP_HEIGHT]) {
 						if (!cell_in_shadow(cellSlope)) {
 							// No - Mark as visible
 							fovMap[mapCell.x][mapCell.y] = 1;
+							// Mark as seen
+							seenMap[mapCell.x][mapCell.y] = 1;
 							// Is cell blocking?
 							if (cell_blocks_sight(mapCell.x, mapCell.y)) {
 								// Was the last cell blocking?

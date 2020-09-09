@@ -53,12 +53,13 @@ void draw_map(PT_Console *console){
 	int y;
 	int tile; 
 	asciiChar glyph;
+	u32 fgColor;
 
 	for (x = 0; x < MAP_WIDTH; x++)
   	{
      	for (y = 0; y < MAP_HEIGHT; y++)	
     	{
-			if (fovMap[x][y] > 0) {
+			if (fovMap[x][y] > 0 || seenMap[x][y] > 0) {
 				tile = map[x][y];
 				//tile = get_tile(x,y);
 
@@ -80,7 +81,17 @@ void draw_map(PT_Console *console){
 						glyph = 'x';
 					}
 				}
-				PT_ConsolePutCharAt(console, glyph, x, y, 0xFFFFFFFF, 0x000000FF);
+
+				if (seenMap[x][y] > 0) {
+					fgColor = 0x7F7F7FFF;
+				}
+				if (fovMap[x][y] > 0) {
+					fgColor = 0xFFFFFFFF;
+				}
+				
+				
+
+				PT_ConsolePutCharAt(console, glyph, x, y, fgColor, 0x000000FF);
 			}
 		}
 	}
