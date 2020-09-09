@@ -6,7 +6,9 @@
 typedef enum {
 	COMP_POSITION = 0,
 	COMP_RENDERABLE,
-	COMP_PHYSICAL,
+	COMP_PHYSICAL, // do we block move?
+	COMP_NPC,
+	COMP_NAME,
 	COMP_HEALTH,
 	COMP_MOVEMENT,
 
@@ -41,6 +43,15 @@ typedef struct {
 	bool blocksSight;
 } Physical;
 
+typedef struct {
+	u32 objectId;
+	const char* name; //no string type in C!
+} Name;
+
+//C doesn't support empty structs
+typedef struct {
+	u32 objectId;
+} NPC;
 
 /* World State */
 #define MAX_GO 	1000
@@ -48,6 +59,8 @@ global_variable GameObject gameObjects[MAX_GO];
 global_variable Position positionComps[MAX_GO];
 global_variable Renderable renderableComps[MAX_GO];
 global_variable Physical physicalComps[MAX_GO];
+global_variable NPC NPCComps[MAX_GO];
+global_variable Name nameComps[MAX_GO];
 
 /* Game Object Management */
 GameObject *createGameObject() {
@@ -114,6 +127,26 @@ void addComponentToGameObject(GameObject *obj,
 			break;
         }
 
+		case COMP_NAME: {
+			Name *name = &nameComps[obj->id];
+			Name *nameData = (Name *)nameData;
+			name->objectId = obj->id;
+			//name->name = nameData->name;
+
+			obj->components[comp] = name;
+
+			break;
+		}
+
+		case COMP_NPC: {
+			NPC *npc = &NPCComps[obj->id];
+			NPC *npcData = (NPC *)npcData;
+			npc->objectId = obj->id;
+
+			obj->components[comp] = npc;
+			break;
+		}
+
 
 		default:
 			assert(1 == 0);
@@ -125,6 +158,8 @@ void destroyGameObject(GameObject *obj) {
 	positionComps[obj->id].objectId = 0;
 	renderableComps[obj->id].objectId = 0;
     physicalComps[obj->id].objectId = 0;
+	nameComps[obj->id].objectId = 0;
+	NPCComps[obj->id].objectId = 0;
 	// TODO: Clean up other components used by this object
 
 	obj->id = 0;
@@ -134,4 +169,20 @@ void destroyGameObject(GameObject *obj) {
 void *getComponentForGameObject(GameObject *obj, 
 								GameComponent comp) {
 	return obj->components[comp];
+}
+
+//helper to avoid problems assigning our structs
+void add_NPC(u8 x, u8 y, asciiChar glyph, u32 fgColor) {
+	GameObject *npc = createGameObject();
+	Position pos = {.objectId = npc->id, .x = x, .y = y};
+	addComponentToGameObject(npc, COMP_POSITION, &pos);
+	Renderable rnd = {.objectId = npc->id, .glyph = glyph, .fgColor = fgColor, .bgColor = 0x00000000};
+	addComponentToGameObject(npc, COMP_RENDERABLE, &rnd);
+	Physical phys = {.objectId = npc->id, .blocksMovement = true, .blocksSight = false};
+	addComponentToGameObject(npc, COMP_PHYSICAL, &phys);
+	Name name = {.objectId = npc->id};
+	name.name = "Thug"; // we can't initialize strings in C!
+	addComponentToGameObject(npc, COMP_NAME, &name);
+	NPC npc_comp = {.objectId = npc->id};
+	addComponentToGameObject(npc, COMP_NPC, &npc_comp);
 }

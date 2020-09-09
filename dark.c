@@ -241,6 +241,13 @@ int main() {
 	Physical phys = {player->id, true, true};
 	addComponentToGameObject(player, COMP_PHYSICAL, &phys);
 
+	
+	Point pt = level_get_open_point();
+	add_NPC(pt.x, pt.y, 't', 0xFF0000FF);
+	pt = level_get_open_point();
+	add_NPC(pt.x, pt.y, 't', 0xFF0000FF);
+
+
 	generate_map();
 
 	Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);

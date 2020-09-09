@@ -4,6 +4,10 @@
 #define MAP_HEIGHT	40
 global_variable int map[MAP_WIDTH][MAP_HEIGHT]; //it's an int because we use enums (= ints) for tiles
 
+typedef struct {
+	u32 x, y;
+} Point;
+
 // Tile types; these are used on the map
 typedef enum
 {
@@ -35,6 +39,17 @@ void set_tile(int x, int y, int tile)
   //printf("Tile at x %i, y %i: %i", x, y, map[x][y]);
 
   return;
+}
+
+Point level_get_open_point() {
+	// Return a random position within the level that is open
+	for (;;) {
+		u32 x = rand() % MAP_WIDTH;
+		u32 y = rand() % MAP_HEIGHT;
+		if (map[x][y] == tile_floor) {
+			return (Point) {x, y};
+		}
+	}
 }
 
 void generate_map() {
