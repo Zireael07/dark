@@ -3,6 +3,7 @@
 #define MAP_WIDTH	80
 #define MAP_HEIGHT	40
 global_variable int map[MAP_WIDTH][MAP_HEIGHT]; //it's an int because we use enums (= ints) for tiles
+global_variable i32 (*targetMap)[MAP_HEIGHT] = NULL;
 
 typedef struct {
 	u32 x, y;
@@ -69,4 +70,55 @@ void generate_map() {
 			}
 		}
   	}
+}
+
+bool is_wall(i32 x, i32 y) {
+	return get_tile(x,y) == tile_wall;
+}
+
+void generate_Dijkstra_map(i32 targetX, i32 targetY) {
+	i32 (* dmap)[MAP_HEIGHT] = malloc(MAP_WIDTH * MAP_HEIGHT * sizeof(i32));
+	i32 UNSET = 9999;
+
+	for (i32 x = 0; x < MAP_WIDTH; x++) {
+		for (i32 y = 0; y < MAP_HEIGHT; y++) {
+			dmap[x][y] = UNSET;
+		}
+	}
+
+	// Set our target point(s)
+	dmap[targetX][targetY] = 0;
+
+	// Calculate our target map
+	bool changesMade = true;
+	while (changesMade) {
+		changesMade = false;
+
+		for (i32 x = 0; x < MAP_WIDTH; x++) {
+			for (i32 y = 0; y < MAP_HEIGHT; y++) {
+				i32 currCellValue = dmap[x][y];
+				if (currCellValue != UNSET) {
+					// Check cells around this one and update them if warranted
+					if ((!is_wall(x+1, y)) && (dmap[x+1][y] > currCellValue + 1)) { 
+						dmap[x+1][y] = currCellValue + 1;
+						changesMade = true;
+					}
+					if ((!is_wall(x-1, y)) && (dmap[x-1][y] > currCellValue + 1)) { 
+						dmap[x-1][y] = currCellValue + 1;
+						changesMade = true;
+					}
+					if ((!is_wall(x, y-1)) && (dmap[x][y-1] > currCellValue + 1)) { 
+						dmap[x][y-1] = currCellValue + 1;
+						changesMade = true;
+					}
+					if ((!is_wall(x, y+1)) && (dmap[x][y+1] > currCellValue + 1)) { 
+						dmap[x][y+1] = currCellValue + 1;
+						changesMade = true;
+					}
+				}
+			}
+		}
+	}
+
+	targetMap = dmap;
 }

@@ -97,6 +97,23 @@ void draw_map(PT_Console *console){
 	}
 }
 
+void debug_draw_Dijkstra(PT_Console *console){
+	int x;
+	int y;
+	
+	for (x = 0; x < MAP_WIDTH; x++)
+  	{
+     	for (y = 0; y < MAP_HEIGHT; y++)	
+    	{
+			if (fovMap[x][y] > 0 || seenMap[x][y] > 0) {
+				i32 val = targetMap[x][y] % 10;
+				asciiChar ch = 48 + val;
+				PT_ConsolePutCharAt(console, ch, x, y, 0xFFFFFFFF, 0x000000FF);
+			}
+		}
+	}
+}
+
 
 // looks like functions have to be defined before use in C
 void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, PT_Console *console) {
@@ -116,6 +133,9 @@ void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, PT_Console *cons
 			}
 		}
 	}
+
+	//debug Dijkstra map
+	//debug_draw_Dijkstra(console);
 
 	SDL_UpdateTexture(screen, NULL, console->pixels, SCREEN_WIDTH * sizeof(u32));
 	SDL_RenderClear(renderer);
@@ -150,7 +170,14 @@ bool canMove(Position pos) {
 	return moveAllowed;
 }
 
-void onPlayerMoved() {
+void onPlayerMoved(GameObject *player) {
+	//clear and regenerate Dijkstra map
+	if (targetMap != NULL) {
+		free(targetMap);
+	}
+	Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
+	generate_Dijkstra_map(playerPos->x, playerPos->y);
+
 	//NPCs get their turn
 	for (u32 i = 1; i < MAX_GO; i++) {
 		NPC npc = NPCComps[i];
@@ -185,7 +212,7 @@ void main_loop(void *context) {
 			 	if (canMove(newPos)) { 
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
-					onPlayerMoved();
+					onPlayerMoved(ctx->player);
 				} 
 			}
         if (key == SDLK_DOWN) { 
@@ -193,7 +220,7 @@ void main_loop(void *context) {
 				if (canMove(newPos)) { 
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
-					onPlayerMoved();
+					onPlayerMoved(ctx->player);
 				} 
 			}
         if (key == SDLK_LEFT) { 
@@ -201,7 +228,7 @@ void main_loop(void *context) {
 				if (canMove(newPos)) { 
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
-					onPlayerMoved();
+					onPlayerMoved(ctx->player);
 				} 
 			}
         if (key == SDLK_RIGHT) { 
@@ -209,7 +236,7 @@ void main_loop(void *context) {
 				if (canMove(newPos)) { 
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
-					onPlayerMoved();
+					onPlayerMoved(ctx->player);
 				} 
 			}
 
@@ -266,6 +293,8 @@ int main() {
 
 	Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
 	fov_calculate(playerPos->x, playerPos->y, fovMap);
+	//Dijkstra map
+	generate_Dijkstra_map(playerPos->x, playerPos->y);
 
 	struct context ctx = {.window = window, .screen = screen, .renderer = renderer, .console = console, .player = player, .should_quit = false};
 
