@@ -182,7 +182,53 @@ void onPlayerMoved(GameObject *player) {
 	for (u32 i = 1; i < MAX_GO; i++) {
 		NPC npc = NPCComps[i];
 		if ((npc.objectId > 0)) {
-			printf("%s growls!\n", nameComps[i].name);
+			//printf("%s growls!\n", nameComps[i].name);
+
+			Position *p = (Position *)getComponentForGameObject(&gameObjects[i], COMP_POSITION);
+			Position newPos = {.objectId = p->objectId, .x = p->x, .y = p->y};
+
+			// If the player can see the monster, the monster can see the player
+			if (fovMap[p->x][p->y] > 0) {
+				// Evaluate all cardinal direction cells and pick randomly between optimal moves 
+				Position moves[4];
+				i32 moveCount = 0;
+				i32 currTargetValue = targetMap[p->x][p->y];
+				if (targetMap[p->x - 1][p->y] < currTargetValue) {
+					Position np = newPos;
+					np.x -= 1;	
+					moves[moveCount] = np;					
+					moveCount += 1;
+				}
+				if (targetMap[p->x][p->y - 1] < currTargetValue) { 
+					Position np = newPos;
+					np.y -= 1;						
+					moves[moveCount] = np;					
+					moveCount += 1;
+				}
+				if (targetMap[p->x + 1][p->y] < currTargetValue) { 
+					Position np = newPos;
+					np.x += 1;						
+					moves[moveCount] = np;					
+					moveCount += 1;
+				}
+				if (targetMap[p->x][p->y + 1] < currTargetValue) { 
+					Position np = newPos;
+					np.y += 1;						
+					moves[moveCount] = np;					
+					moveCount += 1;
+				}
+
+				u32 moveIdx = rand() % moveCount;
+				newPos = moves[moveIdx];			
+
+				// Test to see if the new position can be moved to
+				if (canMove(newPos)) {
+					addComponentToGameObject(&gameObjects[i], COMP_POSITION, &newPos);
+				}
+			}
+
+
+
 		}
 	}
 }
