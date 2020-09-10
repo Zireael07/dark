@@ -129,9 +129,14 @@ void addComponentToGameObject(GameObject *obj,
 
 		case COMP_NAME: {
 			Name *name = &nameComps[obj->id];
-			Name *nameData = (Name *)nameData;
+			Name *nameData = (Name *)compData;
 			name->objectId = obj->id;
-			//name->name = nameData->name;
+			//name->name = nameData->name; //this doesn't work in C!
+			//workaround for the above
+			if (nameData->name != NULL) {
+					name->name = calloc(strlen(nameData->name) + 1, sizeof(char));
+					strcpy(name->name, nameData->name);
+				}
 
 			obj->components[comp] = name;
 
@@ -140,7 +145,7 @@ void addComponentToGameObject(GameObject *obj,
 
 		case COMP_NPC: {
 			NPC *npc = &NPCComps[obj->id];
-			NPC *npcData = (NPC *)npcData;
+			NPC *npcData = (NPC *)compData;
 			npc->objectId = obj->id;
 
 			obj->components[comp] = npc;
@@ -182,6 +187,7 @@ void add_NPC(u8 x, u8 y, asciiChar glyph, u32 fgColor) {
 	addComponentToGameObject(npc, COMP_PHYSICAL, &phys);
 	Name name = {.objectId = npc->id};
 	name.name = "Thug"; // we can't initialize strings in C!
+	//printf("%s", name.name);
 	addComponentToGameObject(npc, COMP_NAME, &name);
 	NPC npc_comp = {.objectId = npc->id};
 	addComponentToGameObject(npc, COMP_NPC, &npc_comp);

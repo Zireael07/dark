@@ -150,6 +150,16 @@ bool canMove(Position pos) {
 	return moveAllowed;
 }
 
+void onPlayerMoved() {
+	//NPCs get their turn
+	for (u32 i = 1; i < MAX_GO; i++) {
+		NPC npc = NPCComps[i];
+		if ((npc.objectId > 0)) {
+			printf("%s growls!\n", nameComps[i].name);
+		}
+	}
+}
+
 /* What it says on the tin */
 void main_loop(void *context) {
 	struct context *ctx = (struct context *)context;
@@ -175,6 +185,7 @@ void main_loop(void *context) {
 			 	if (canMove(newPos)) { 
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
+					onPlayerMoved();
 				} 
 			}
         if (key == SDLK_DOWN) { 
@@ -182,6 +193,7 @@ void main_loop(void *context) {
 				if (canMove(newPos)) { 
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
+					onPlayerMoved();
 				} 
 			}
         if (key == SDLK_LEFT) { 
@@ -189,6 +201,7 @@ void main_loop(void *context) {
 				if (canMove(newPos)) { 
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
+					onPlayerMoved();
 				} 
 			}
         if (key == SDLK_RIGHT) { 
@@ -196,6 +209,7 @@ void main_loop(void *context) {
 				if (canMove(newPos)) { 
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
+					onPlayerMoved();
 				} 
 			}
 
