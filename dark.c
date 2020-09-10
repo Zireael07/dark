@@ -170,6 +170,16 @@ bool canMove(Position pos) {
 	return moveAllowed;
 }
 
+void combatAttack(GameObject *attacker, GameObject *defender) {
+	Combat *att = (Combat *)getComponentForGameObject(attacker, COMP_COMBAT);
+	Combat *def = (Combat *)getComponentForGameObject(defender, COMP_COMBAT);
+
+	Name *name_att = (Name *)getComponentForGameObject(attacker, COMP_NAME);
+	Name *name_def = (Name *)getComponentForGameObject(defender, COMP_NAME);
+
+	printf("%s attacks %s\n", name_att->name, name_def->name);
+}
+
 void onPlayerMoved(GameObject *player) {
 	//clear and regenerate Dijkstra map
 	if (targetMap != NULL) {
@@ -189,45 +199,50 @@ void onPlayerMoved(GameObject *player) {
 
 			// If the player can see the monster, the monster can see the player
 			if (fovMap[p->x][p->y] > 0) {
-				// Evaluate all cardinal direction cells and pick randomly between optimal moves 
-				Position moves[4];
-				i32 moveCount = 0;
-				i32 currTargetValue = targetMap[p->x][p->y];
-				if (targetMap[p->x - 1][p->y] < currTargetValue) {
-					Position np = newPos;
-					np.x -= 1;	
-					moves[moveCount] = np;					
-					moveCount += 1;
-				}
-				if (targetMap[p->x][p->y - 1] < currTargetValue) { 
-					Position np = newPos;
-					np.y -= 1;						
-					moves[moveCount] = np;					
-					moveCount += 1;
-				}
-				if (targetMap[p->x + 1][p->y] < currTargetValue) { 
-					Position np = newPos;
-					np.x += 1;						
-					moves[moveCount] = np;					
-					moveCount += 1;
-				}
-				if (targetMap[p->x][p->y + 1] < currTargetValue) { 
-					Position np = newPos;
-					np.y += 1;						
-					moves[moveCount] = np;					
-					moveCount += 1;
-				}
+				// Determine if we're currently in combat range of the player
+				if (targetMap[p->x][p->y] == 1) {
+					//printf("%s", "Monster attacks!\n");
+					// Combat range - so attack the player
+					combatAttack(&gameObjects[npc.objectId], player);
+				} else {
+					// Evaluate all cardinal direction cells and pick randomly between optimal moves 
+					Position moves[4];
+					i32 moveCount = 0;
+					i32 currTargetValue = targetMap[p->x][p->y];
+					if (targetMap[p->x - 1][p->y] < currTargetValue) {
+						Position np = newPos;
+						np.x -= 1;	
+						moves[moveCount] = np;					
+						moveCount += 1;
+					}
+					if (targetMap[p->x][p->y - 1] < currTargetValue) { 
+						Position np = newPos;
+						np.y -= 1;						
+						moves[moveCount] = np;					
+						moveCount += 1;
+					}
+					if (targetMap[p->x + 1][p->y] < currTargetValue) { 
+						Position np = newPos;
+						np.x += 1;						
+						moves[moveCount] = np;					
+						moveCount += 1;
+					}
+					if (targetMap[p->x][p->y + 1] < currTargetValue) { 
+						Position np = newPos;
+						np.y += 1;						
+						moves[moveCount] = np;					
+						moveCount += 1;
+					}
 
-				u32 moveIdx = rand() % moveCount;
-				newPos = moves[moveIdx];			
+					u32 moveIdx = rand() % moveCount;
+					newPos = moves[moveIdx];			
 
-				// Test to see if the new position can be moved to
-				if (canMove(newPos)) {
-					addComponentToGameObject(&gameObjects[i], COMP_POSITION, &newPos);
+					// Test to see if the new position can be moved to
+					if (canMove(newPos)) {
+						addComponentToGameObject(&gameObjects[i], COMP_POSITION, &newPos);
+					}
 				}
 			}
-
-
 
 		}
 	}
@@ -259,7 +274,26 @@ void main_loop(void *context) {
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
 					onPlayerMoved(ctx->player);
-				} 
+				} else {
+					//check for blocking NPCs
+					GameObject *blockerObj = NULL;
+					for (u32 i = 1; i < MAX_GO; i++) {
+						Position p = positionComps[i];
+						if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+							if (healthComps[i].currentHP > 0) {
+								blockerObj = (GameObject *) &gameObjects[i];
+								//printf("Blocker found!\n");
+								break;
+							}
+						}
+					}
+
+					if (blockerObj != NULL) {
+						//printf("We have a blocker!\n");
+						combatAttack(ctx->player, blockerObj);
+						onPlayerMoved(ctx->player);
+					}
+				}
 			}
         if (key == SDLK_DOWN) { 
 				Position newPos = {playerPos->objectId, playerPos->x, playerPos->y + 1};
@@ -267,7 +301,26 @@ void main_loop(void *context) {
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
 					onPlayerMoved(ctx->player);
-				} 
+				} else {
+					//check for blocking NPCs
+					GameObject *blockerObj = NULL;
+					for (u32 i = 1; i < MAX_GO; i++) {
+						Position p = positionComps[i];
+						if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+							if (healthComps[i].currentHP > 0) {
+								blockerObj = (GameObject *) &gameObjects[i];
+								//printf("Blocker found!\n");
+								break;
+							}
+						}
+					}
+
+					if (blockerObj != NULL) {
+						//printf("We have a blocker!\n");
+						combatAttack(ctx->player, blockerObj);
+						onPlayerMoved(ctx->player);
+					}
+				}
 			}
         if (key == SDLK_LEFT) { 
 				Position newPos = {playerPos->objectId, playerPos->x - 1, playerPos->y};
@@ -275,7 +328,26 @@ void main_loop(void *context) {
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
 					onPlayerMoved(ctx->player);
-				} 
+				} else {
+					//check for blocking NPCs
+					GameObject *blockerObj = NULL;
+					for (u32 i = 1; i < MAX_GO; i++) {
+						Position p = positionComps[i];
+						if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+							if (healthComps[i].currentHP > 0) {
+								blockerObj = (GameObject *) &gameObjects[i];
+								//printf("Blocker found!\n");
+								break;
+							}
+						}
+					}
+
+					if (blockerObj != NULL) {
+						//printf("We have a blocker!\n");
+						combatAttack(ctx->player, blockerObj);
+						onPlayerMoved(ctx->player);
+					}
+				}
 			}
         if (key == SDLK_RIGHT) { 
 				Position newPos = {playerPos->objectId, playerPos->x + 1, playerPos->y};
@@ -283,7 +355,26 @@ void main_loop(void *context) {
 					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
 					onPlayerMoved(ctx->player);
-				} 
+				} else {
+					//check for blocking NPCs
+					GameObject *blockerObj = NULL;
+					for (u32 i = 1; i < MAX_GO; i++) {
+						Position p = positionComps[i];
+						if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+							if (healthComps[i].currentHP > 0) {
+								blockerObj = (GameObject *) &gameObjects[i];
+								//printf("Blocker found!\n");
+								break;
+							}
+						}
+					}
+
+					if (blockerObj != NULL) {
+						//printf("We have a blocker!\n");
+						combatAttack(ctx->player, blockerObj);
+						onPlayerMoved(ctx->player);
+					}
+				}
 			}
 
 	}
@@ -327,12 +418,20 @@ int main() {
 	addComponentToGameObject(player, COMP_RENDERABLE, &rnd);
 	Physical phys = {player->id, true, true};
 	addComponentToGameObject(player, COMP_PHYSICAL, &phys);
+	Name name = {.objectId = player->id};
+	name.name = "Player"; // we can't initialize strings in C!
+	//printf("Player name: %s\n", name.name);
+	addComponentToGameObject(player, COMP_NAME, &name);
+	Health hlth = {.objectId = player->id, .currentHP = 20, .maxHP = 20, .recoveryRate = 1};
+	addComponentToGameObject(player, COMP_HEALTH, &hlth);
+	Combat com = {.objectId = player->id, .attack = 2, .defense = 2};
+	addComponentToGameObject(player, COMP_COMBAT, &com);
 
 	
 	Point pt = level_get_open_point();
-	add_NPC(pt.x, pt.y, 't', 0xFF0000FF);
+	add_NPC(pt.x, pt.y, 't', 0xFF0000FF, 8, 1, 1);
 	pt = level_get_open_point();
-	add_NPC(pt.x, pt.y, 't', 0xFF0000FF);
+	add_NPC(pt.x, pt.y, 't', 0xFF0000FF, 8, 1, 1);
 
 
 	generate_map();

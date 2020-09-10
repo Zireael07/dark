@@ -10,6 +10,7 @@ typedef enum {
 	COMP_NPC,
 	COMP_NAME,
 	COMP_HEALTH,
+	COMP_COMBAT,
 	COMP_MOVEMENT,
 
 	/* Define other components above here */
@@ -53,6 +54,19 @@ typedef struct {
 	u32 objectId;
 } NPC;
 
+typedef struct {
+	i32 objectId;
+	i32 currentHP;
+	i32 maxHP;
+	i32 recoveryRate;		// HP recovered per tick.
+} Health;
+
+typedef struct {
+	i32 objectId;
+	i32 attack;				// attack = damage inflicted per hit
+	i32 defense;			// defense = damage absorbed before HP is affected
+} Combat;
+
 /* World State */
 #define MAX_GO 	1000
 global_variable GameObject gameObjects[MAX_GO];
@@ -61,6 +75,8 @@ global_variable Renderable renderableComps[MAX_GO];
 global_variable Physical physicalComps[MAX_GO];
 global_variable NPC NPCComps[MAX_GO];
 global_variable Name nameComps[MAX_GO];
+global_variable Health healthComps[MAX_GO];
+global_variable Combat combatComps[MAX_GO];
 
 /* Game Object Management */
 GameObject *createGameObject() {
@@ -152,6 +168,29 @@ void addComponentToGameObject(GameObject *obj,
 			break;
 		}
 
+		case COMP_HEALTH: {
+			Health *hlth = &healthComps[obj->id];
+			Health *hlthData = (Health *)compData;
+			hlth->objectId = obj->id;
+			hlth->currentHP = hlthData->currentHP;
+			hlth->maxHP = hlthData->maxHP;
+			hlth->recoveryRate = hlthData->recoveryRate;
+
+			obj->components[comp] = hlth;
+			break;
+		}
+
+		case COMP_COMBAT: {
+			Combat *com = &combatComps[obj->id];
+			Combat *combatData = (Combat *)compData;
+			com->objectId = obj->id;
+			com->attack = combatData->attack;
+			com->defense = combatData->defense;
+
+			obj->components[comp] = com;
+			break;
+		}
+
 
 		default:
 			assert(1 == 0);
@@ -165,6 +204,8 @@ void destroyGameObject(GameObject *obj) {
     physicalComps[obj->id].objectId = 0;
 	nameComps[obj->id].objectId = 0;
 	NPCComps[obj->id].objectId = 0;
+	healthComps[obj->id].objectId = 0;
+	combatComps[obj->id].objectId = 0;
 	// TODO: Clean up other components used by this object
 
 	obj->id = 0;
@@ -177,7 +218,7 @@ void *getComponentForGameObject(GameObject *obj,
 }
 
 //helper to avoid problems assigning our structs
-void add_NPC(u8 x, u8 y, asciiChar glyph, u32 fgColor) {
+void add_NPC(u8 x, u8 y, asciiChar glyph, u32 fgColor, i32 maxHP, i32 attack, i32 defense) {
 	GameObject *npc = createGameObject();
 	Position pos = {.objectId = npc->id, .x = x, .y = y};
 	addComponentToGameObject(npc, COMP_POSITION, &pos);
@@ -191,4 +232,8 @@ void add_NPC(u8 x, u8 y, asciiChar glyph, u32 fgColor) {
 	addComponentToGameObject(npc, COMP_NAME, &name);
 	NPC npc_comp = {.objectId = npc->id};
 	addComponentToGameObject(npc, COMP_NPC, &npc_comp);
+	Health hlth = {.objectId = npc->id, .currentHP = maxHP, .maxHP = maxHP, .recoveryRate = 0};
+	addComponentToGameObject(npc, COMP_HEALTH, &hlth);
+	Combat com = {.objectId = npc->id, .attack = attack, .defense = defense};
+	addComponentToGameObject(npc, COMP_COMBAT, &com);
 }
