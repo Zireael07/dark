@@ -173,7 +173,38 @@ internal void gameRender(PT_Console *console){
 	//debug_draw_Dijkstra(console);
 }
 
+internal void statsRender(PT_Console *console) {
+
+	PT_Rect rect = {0, 40, 20, 5};
+	UI_DrawRect(console, &rect, 0x222222FF, 0, 0xFF990099); //light gray
+
+	// HP health bar
+	Health *playerHealth = getComponentForGameObject(player, COMP_HEALTH);
+	PT_ConsolePutCharAt(console, 'H', 0, 41, 0xFF990099, 0x00000000); //brown
+	PT_ConsolePutCharAt(console, 'P', 1, 41, 0xFF990099, 0x00000000);
+	i32 leftX = 3;
+	i32 barWidth = 16;
+
+	i32 healthCount = ceil(((float)playerHealth->currentHP / (float)playerHealth->maxHP) * barWidth);
+	for (i32 x = 0; x < barWidth; x++) {
+		if (x < healthCount) {
+			//PT_ConsolePutCharAt(console, '#', leftX + x, 41, 0x009900FF, 0x00000000);	//green	
+			PT_ConsolePutCharAt(console, 176, leftX + x, 41, 0x009900FF, 0x00000000); //one of the dotted/shaded rectangles
+			//note that pt_console.c allows layering characters!
+			PT_ConsolePutCharAt(console, 3, leftX + x, 41, 0x009900FF, 0x00000000);	//heart
+		} else {
+			PT_ConsolePutCharAt(console, 176, leftX + x, 41, 0xFF990099, 0x00000000);		
+		}
+	}
+
+}
+
 internal void messageLogRender(PT_Console *console) {
+	// some fancy background color
+	PT_Rect rect = {30, 40, 50, 5};
+	UI_DrawRect(console, &rect, 0x111111FF, 0, 0xFF990099);
+
+
 	if (messageLog == NULL) { return; }
 
 	// Get the last 5 messages from the log
@@ -516,12 +547,7 @@ int main() {
 
 	SDL_Texture *screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	// PT_Console *console = PT_ConsoleInit(SCREEN_WIDTH, SCREEN_HEIGHT, 
-	// 									 NUM_ROWS, NUM_COLS);
-
-	// PT_ConsoleSetBitmapFont(console, "assets/terminal16x16.png", 0, 16, 16);
-
-	// TODO: Initialize UI state (screens, view stack, etc)
+	// Initialize UI state (screens, view stack, etc)
 	UIScreen *activeScreen = NULL;
 
 	PT_Console *igConsole = PT_ConsoleInit(SCREEN_WIDTH, SCREEN_HEIGHT, NUM_ROWS, NUM_COLS);
@@ -532,9 +558,14 @@ int main() {
 	mapView->render = gameRender;
 	list_insert_after(igViews, NULL, mapView);
 
+	UIView *statsView = malloc(sizeof(UIView));
+	statsView->render = statsRender;
+	list_insert_after(igViews, NULL, statsView);
+
 	UIView *logView = malloc(sizeof(UIView));
 	logView->render = messageLogRender;
 	list_insert_after(igViews, NULL, logView);
+
 	UIScreen *inGameScreen = malloc(sizeof(UIScreen));
 	inGameScreen->console = igConsole;
 	inGameScreen->views = igViews;
