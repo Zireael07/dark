@@ -24,14 +24,17 @@ typedef int64_t		i64;
 #define local_persist static
 #define global_variable static
 
-
-#include "pt_console.c"
-
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
 
 // our own stuff starts here
+#include "utils.c"
+#include "list.c"
+
+#include "pt_console.c"
+#include "pt_ui.c"
+
 #include "ecs.c"
 #include "map.c"
 #include "fov.c"
@@ -39,15 +42,55 @@ typedef int64_t		i64;
 struct context {
     SDL_Window *window;
     SDL_Renderer *renderer;
-    SDL_Texture *screen;
-	PT_Console *console;
+    SDL_Texture *screenTexture;
+	UIScreen *activeScreen;
 	GameObject *player; //hack for now!
     bool should_quit;
 };
 
+/* Message Log */
+typedef struct {
+	char *msg;
+	u32 fgColor;
+} Message;
+
+global_variable List *messageLog = NULL;
+
+
 #include "stdio.h"
 
+/* Message */
+void add_message(char *msg, u32 color) {
+	// TODO: When we build our UI system, have the messages display there. Also
+	// store them in a buffer so we can show the last few messages at once.
+	// For now, messages are just sent to stdout
+	Message *m = malloc(sizeof(Message));
+	if (msg != NULL) {
+		m->msg = malloc(strlen(msg));
+		strcpy(m->msg, msg);		
+	} else {
+		m->msg = "";
+	}
+	m->fgColor = color;
 
+	// Add message to log
+	if (messageLog == NULL) {
+		messageLog = list_new(NULL);
+	}
+	list_insert_after(messageLog, list_tail(messageLog), m);
+
+	// If our log has exceeded 20 messages, cull the older messages
+	if (list_size(messageLog) > 20) {
+		list_remove(messageLog, NULL);  // Remove the oldest message
+	}
+
+	// DEBUG
+	printf("%s\n", msg);
+	printf("Message Log Size: %d\n", list_size(messageLog));
+	// DEBUG
+}
+
+//Rendering
 void draw_map(PT_Console *console){
 	int x;
 	int y;
@@ -114,13 +157,7 @@ void debug_draw_Dijkstra(PT_Console *console){
 	}
 }
 
-
-// looks like functions have to be defined before use in C
-void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, PT_Console *console) {
-
-	//u32 *pixels = calloc(SCREEN_WIDTH * SCREEN_HEIGHT, sizeof(u32));
-	PT_ConsoleClear(console);
-
+internal void gameRender(PT_Console *console){
 	//PT_ConsolePutCharAt(console, '@', player.pos_x, player.pos_y, 0xFFFFFFFF, 0x000000FF);
 	draw_map(console);
 
@@ -136,10 +173,52 @@ void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, PT_Console *cons
 
 	//debug Dijkstra map
 	//debug_draw_Dijkstra(console);
+}
 
-	SDL_UpdateTexture(screen, NULL, console->pixels, SCREEN_WIDTH * sizeof(u32));
+internal void messageLogRender(PT_Console *console) {
+	if (messageLog == NULL) { return; }
+
+	// Get the last 5 messages from the log
+	ListElement *e = list_tail(messageLog);
+	i32 msgCount = list_size(messageLog);
+	u32 row = 44;
+	u32 col = 30;
+
+	if (msgCount < 5) {
+		row -= (5 - msgCount);
+	} else {
+		msgCount = 5;
+	}
+
+	for (i32 i = 0; i < msgCount; i++) {
+		if (e != NULL) {
+			Message *m = (Message *)list_data(e);
+			PT_Rect rect = {.x = col, .y = row, .w = 50, .h = 1};
+			PT_ConsolePutStringInRect(console, m->msg, rect, false, m->fgColor, 0x00000000);
+			e = list_prev(e);			
+			row -= 1;
+		}
+	}
+}
+
+
+// looks like functions have to be defined before use in C
+void render_screen(SDL_Renderer *renderer, SDL_Texture *screenTexture, UIScreen *screen) {
+
+	//u32 *pixels = calloc(SCREEN_WIDTH * SCREEN_HEIGHT, sizeof(u32));
+	PT_ConsoleClear(screen->console);
+
+	// Render views from back to front for the current screen
+	ListElement *e = list_head(screen->views);
+	while (e != NULL) {
+		UIView *v = (UIView *)list_data(e);
+		v->render(screen->console);
+		e = list_next(e);
+	}
+
+	SDL_UpdateTexture(screenTexture, NULL, screen->console->pixels, SCREEN_WIDTH * sizeof(u32));
 	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, screen, NULL, NULL);
+	SDL_RenderCopy(renderer, screenTexture, NULL, NULL);
 	SDL_RenderPresent(renderer);
 }
 
@@ -177,7 +256,10 @@ void combatAttack(GameObject *attacker, GameObject *defender) {
 	Name *name_att = (Name *)getComponentForGameObject(attacker, COMP_NAME);
 	Name *name_def = (Name *)getComponentForGameObject(defender, COMP_NAME);
 
-	printf("%s attacks %s\n", name_att->name, name_def->name);
+	//printf("%s attacks %s\n", name_att->name, name_def->name);
+	char *msg = NULL;
+	sasprintf(msg, "%s attacks %s!", name_att->name, name_def->name);
+	add_message(msg, 0xCC0000FF);
 }
 
 void onPlayerMoved(GameObject *player) {
@@ -385,7 +467,9 @@ void main_loop(void *context) {
 		recalculateFOV = false;
 	}
 
-	render_screen(ctx->renderer, ctx->screen, ctx->console);
+	// TODO: Determine active screen and render it
+	render_screen(ctx->renderer, ctx->screenTexture, ctx->activeScreen);
+	//render_screen(ctx->renderer, ctx->screen, ctx->console);
 }
 
 /* Initialization here */
@@ -404,12 +488,28 @@ int main() {
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 	SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	SDL_Texture *screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+	SDL_Texture *screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	PT_Console *console = PT_ConsoleInit(SCREEN_WIDTH, SCREEN_HEIGHT, 
-										 NUM_ROWS, NUM_COLS);
+	// PT_Console *console = PT_ConsoleInit(SCREEN_WIDTH, SCREEN_HEIGHT, 
+	// 									 NUM_ROWS, NUM_COLS);
 
-	PT_ConsoleSetBitmapFont(console, "assets/terminal16x16.png", 0, 16, 16);
+	// PT_ConsoleSetBitmapFont(console, "assets/terminal16x16.png", 0, 16, 16);
+
+	// TODO: Initialize UI state (screens, view stack, etc)
+	UIScreen *activeScreen = NULL;
+
+	PT_Console *igConsole = PT_ConsoleInit(SCREEN_WIDTH, SCREEN_HEIGHT, NUM_ROWS, NUM_COLS);
+	PT_ConsoleSetBitmapFont(igConsole, "assets/terminal16x16.png", 0, 16, 16);
+	List *igViews = list_new(NULL);
+
+	UIView mapView = {.render = gameRender};
+	list_insert_after(igViews, NULL, &mapView);
+
+	UIView logView = {.render = messageLogRender};
+	list_insert_after(igViews, NULL, &logView);
+	UIScreen inGameScreen = {.console = igConsole, .views = igViews};
+	activeScreen = &inGameScreen;
+
 
 	GameObject *player = createGameObject();
 	Position pos = {player->id, 10, 10};
@@ -441,7 +541,7 @@ int main() {
 	//Dijkstra map
 	generate_Dijkstra_map(playerPos->x, playerPos->y);
 
-	struct context ctx = {.window = window, .screen = screen, .renderer = renderer, .console = console, .player = player, .should_quit = false};
+	struct context ctx = {.window = window, .screenTexture = screenTexture, .renderer = renderer, .activeScreen = activeScreen, .player = player, .should_quit = false};
 
 /* Main loop handling */
 #ifdef __EMSCRIPTEN__
