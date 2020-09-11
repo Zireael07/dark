@@ -151,6 +151,8 @@ void addComponentToGameObject(GameObject *obj,
 			//name->name = nameData->name; //this doesn't work in C!
 			//workaround for the above
 			if (nameData->name != NULL) {
+					//strlen() does NOT include the null termination
+					//character, so always malloc() the reported length + 1!!
 					name->name = calloc(strlen(nameData->name) + 1, sizeof(char));
 					strcpy(name->name, nameData->name);
 				}

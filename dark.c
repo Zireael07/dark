@@ -61,12 +61,10 @@ global_variable List *messageLog = NULL;
 
 /* Message */
 void add_message(char *msg, u32 color) {
-	// TODO: When we build our UI system, have the messages display there. Also
-	// store them in a buffer so we can show the last few messages at once.
-	// For now, messages are just sent to stdout
 	Message *m = malloc(sizeof(Message));
 	if (msg != NULL) {
-		m->msg = malloc(strlen(msg));
+		//see comment in ecs.c
+		m->msg = malloc(strlen(msg) +1);
 		strcpy(m->msg, msg);		
 	} else {
 		m->msg = "";
@@ -530,13 +528,17 @@ int main() {
 	PT_ConsoleSetBitmapFont(igConsole, "assets/terminal16x16.png", 0, 16, 16);
 	List *igViews = list_new(NULL);
 
-	UIView mapView = {.render = gameRender};
-	list_insert_after(igViews, NULL, &mapView);
+	UIView *mapView = malloc(sizeof(UIView));
+	mapView->render = gameRender;
+	list_insert_after(igViews, NULL, mapView);
 
-	UIView logView = {.render = messageLogRender};
-	list_insert_after(igViews, NULL, &logView);
-	UIScreen inGameScreen = {.console = igConsole, .views = igViews};
-	activeScreen = &inGameScreen;
+	UIView *logView = malloc(sizeof(UIView));
+	logView->render = messageLogRender;
+	list_insert_after(igViews, NULL, logView);
+	UIScreen *inGameScreen = malloc(sizeof(UIScreen));
+	inGameScreen->console = igConsole;
+	inGameScreen->views = igViews;
+	activeScreen = inGameScreen;
 
 
 	player = createGameObject();
