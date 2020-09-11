@@ -248,17 +248,45 @@ bool canMove(Position pos) {
 	return moveAllowed;
 }
 
+void health_check_death(GameObject *go) {
+	Health *h = (Health *)getComponentForGameObject(go, COMP_HEALTH);
+	if (h->currentHP <= 0) {
+		// Death!
+		if (go == player) {
+			char *msg = NULL;
+			sasprintf(msg, "You have died.");
+			add_message(msg, 0xCC0000FF);
+
+			// TODO: Enter endgame flow
+
+		} else {
+			char *msg = NULL;
+			sasprintf(msg, "You killed the [MONSTER].");
+			add_message(msg, 0xCC0000FF);
+
+			//remove from ECS
+			destroyGameObject(go);
+		}
+	}
+}
+
 void combatAttack(GameObject *attacker, GameObject *defender) {
 	Combat *att = (Combat *)getComponentForGameObject(attacker, COMP_COMBAT);
 	Combat *def = (Combat *)getComponentForGameObject(defender, COMP_COMBAT);
+	Health *defHealth = (Health *)getComponentForGameObject(defender, COMP_HEALTH);
 
 	Name *name_att = (Name *)getComponentForGameObject(attacker, COMP_NAME);
 	Name *name_def = (Name *)getComponentForGameObject(defender, COMP_NAME);
 
+	i32 damage = att->attack;
+	defHealth->currentHP -= damage;
+
 	//printf("%s attacks %s\n", name_att->name, name_def->name);
 	char *msg = NULL;
-	sasprintf(msg, "%s attacks %s!", name_att->name, name_def->name);
+	sasprintf(msg, "%s attacks %s for %i damage!", name_att->name, name_def->name, damage);
 	add_message(msg, 0xCC0000FF);
+
+	health_check_death(defender);
 }
 
 void onPlayerMoved(GameObject *player) {
