@@ -25,6 +25,7 @@ typedef int64_t		i64;
 #define global_variable static
 
 #ifdef __EMSCRIPTEN__
+#define HAVE_ASPRINTF //Emscripten has their own asprintf built-in!
 #include <emscripten.h>
 #endif
 
