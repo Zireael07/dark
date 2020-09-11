@@ -69,6 +69,7 @@ typedef struct {
 
 /* World State */
 #define MAX_GO 	1000
+global_variable GameObject *player = NULL;
 global_variable GameObject gameObjects[MAX_GO];
 global_variable Position positionComps[MAX_GO];
 global_variable Renderable renderableComps[MAX_GO];

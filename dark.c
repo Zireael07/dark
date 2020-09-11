@@ -44,7 +44,6 @@ struct context {
     SDL_Renderer *renderer;
     SDL_Texture *screenTexture;
 	UIScreen *activeScreen;
-	GameObject *player; //hack for now!
     bool should_quit;
 };
 
@@ -348,14 +347,14 @@ void main_loop(void *context) {
 		}
 
 		SDL_Keycode key = event.key.keysym.sym;
-		Position *playerPos = (Position *)getComponentForGameObject(ctx->player, COMP_POSITION);
+		Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
 
         if (key == SDLK_UP) {
 				Position newPos = {playerPos->objectId, playerPos->x, playerPos->y - 1};
 			 	if (canMove(newPos)) { 
-					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
+					addComponentToGameObject(player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
-					onPlayerMoved(ctx->player);
+					onPlayerMoved(player);
 				} else {
 					//check for blocking NPCs
 					GameObject *blockerObj = NULL;
@@ -372,17 +371,17 @@ void main_loop(void *context) {
 
 					if (blockerObj != NULL) {
 						//printf("We have a blocker!\n");
-						combatAttack(ctx->player, blockerObj);
-						onPlayerMoved(ctx->player);
+						combatAttack(player, blockerObj);
+						onPlayerMoved(player);
 					}
 				}
 			}
         if (key == SDLK_DOWN) { 
 				Position newPos = {playerPos->objectId, playerPos->x, playerPos->y + 1};
 				if (canMove(newPos)) { 
-					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
+					addComponentToGameObject(player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
-					onPlayerMoved(ctx->player);
+					onPlayerMoved(player);
 				} else {
 					//check for blocking NPCs
 					GameObject *blockerObj = NULL;
@@ -399,17 +398,17 @@ void main_loop(void *context) {
 
 					if (blockerObj != NULL) {
 						//printf("We have a blocker!\n");
-						combatAttack(ctx->player, blockerObj);
-						onPlayerMoved(ctx->player);
+						combatAttack(player, blockerObj);
+						onPlayerMoved(player);
 					}
 				}
 			}
         if (key == SDLK_LEFT) { 
 				Position newPos = {playerPos->objectId, playerPos->x - 1, playerPos->y};
 				if (canMove(newPos)) { 
-					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
+					addComponentToGameObject(player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
-					onPlayerMoved(ctx->player);
+					onPlayerMoved(player);
 				} else {
 					//check for blocking NPCs
 					GameObject *blockerObj = NULL;
@@ -426,17 +425,17 @@ void main_loop(void *context) {
 
 					if (blockerObj != NULL) {
 						//printf("We have a blocker!\n");
-						combatAttack(ctx->player, blockerObj);
-						onPlayerMoved(ctx->player);
+						combatAttack(player, blockerObj);
+						onPlayerMoved(player);
 					}
 				}
 			}
         if (key == SDLK_RIGHT) { 
 				Position newPos = {playerPos->objectId, playerPos->x + 1, playerPos->y};
 				if (canMove(newPos)) { 
-					addComponentToGameObject(ctx->player, COMP_POSITION, &newPos);
+					addComponentToGameObject(player, COMP_POSITION, &newPos);
 					recalculateFOV = true;
-					onPlayerMoved(ctx->player);
+					onPlayerMoved(player);
 				} else {
 					//check for blocking NPCs
 					GameObject *blockerObj = NULL;
@@ -453,8 +452,8 @@ void main_loop(void *context) {
 
 					if (blockerObj != NULL) {
 						//printf("We have a blocker!\n");
-						combatAttack(ctx->player, blockerObj);
-						onPlayerMoved(ctx->player);
+						combatAttack(player, blockerObj);
+						onPlayerMoved(player);
 					}
 				}
 			}
@@ -462,7 +461,7 @@ void main_loop(void *context) {
 	}
 
 	if (recalculateFOV) {
-		Position *pos = (Position *)getComponentForGameObject(ctx->player, COMP_POSITION);
+		Position *pos = (Position *)getComponentForGameObject(player, COMP_POSITION);
 		fov_calculate(pos->x, pos->y, fovMap);
 		recalculateFOV = false;
 	}
@@ -511,7 +510,7 @@ int main() {
 	activeScreen = &inGameScreen;
 
 
-	GameObject *player = createGameObject();
+	player = createGameObject();
 	Position pos = {player->id, 10, 10};
 	addComponentToGameObject(player, COMP_POSITION, &pos);
 	Renderable rnd = {player->id, '@', 0x00FFFFFF, 0x000000FF};
@@ -541,7 +540,7 @@ int main() {
 	//Dijkstra map
 	generate_Dijkstra_map(playerPos->x, playerPos->y);
 
-	struct context ctx = {.window = window, .screenTexture = screenTexture, .renderer = renderer, .activeScreen = activeScreen, .player = player, .should_quit = false};
+	struct context ctx = {.window = window, .screenTexture = screenTexture, .renderer = renderer, .activeScreen = activeScreen, .should_quit = false};
 
 /* Main loop handling */
 #ifdef __EMSCRIPTEN__
