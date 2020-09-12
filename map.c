@@ -12,7 +12,7 @@ typedef struct {
 // Tile types; these are used on the map
 typedef enum
 {
-  tile_error,
+  tile_error = 0,
   tile_floor,
   tile_wall,
 } tile_t;
@@ -48,6 +48,7 @@ Point level_get_open_point() {
 	for (;;) {
 		u32 x = rand() % MAP_WIDTH;
 		u32 y = rand() % MAP_HEIGHT;
+		//printf("Checking point x: %d y: %d = %d", x,y, map[x][y]);
 		if (map[x][y] != tile_wall) {
 			return (Point) {x, y};
 		}

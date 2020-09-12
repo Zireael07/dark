@@ -171,6 +171,8 @@ game_new()
 	Combat com = {.objectId = player->id, .attack = 2, .defense = 2};
 	addComponentToGameObject(player, COMP_COMBAT, &com);
 
+
+	generate_map();
 	
 	Point pt = level_get_open_point();
 	add_NPC(pt.x, pt.y, 't', 0xFF0000FF, 8, 1, 1);
@@ -179,8 +181,6 @@ game_new()
 
 	pt = level_get_open_point();
 	add_item(pt.x, pt.y, "combat knife", '/', 0xFFFF00FF, "hand", 2);
-
-	generate_map();
 
 	Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
 	fov_calculate(playerPos->x, playerPos->y, fovMap);
