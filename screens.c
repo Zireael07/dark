@@ -113,6 +113,12 @@ internal void statsRender(PT_Console *console) {
 		}
 	}
 
+	//draw player position
+	Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
+	char *msg = NULL;
+	sasprintf(msg, "X: %d Y: %d", playerPos->x, playerPos->y);
+	PT_ConsolePutStringAt(console, msg, 0, 3, 0x009900FF, 0x00000000);
+
 }
 
 internal void messageLogRender(PT_Console *console) {
