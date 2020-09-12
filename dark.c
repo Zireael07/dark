@@ -127,6 +127,13 @@ void main_loop(void *context) {
 		}
 
 		// Handle "global" keypresses (those not handled on a screen-by-screen basis)
+		if (event.type == SDL_KEYDOWN) {
+			SDL_Keycode key = event.key.keysym.sym;
+			if (key == SDLK_ESCAPE) {
+				ctx->should_quit = true;
+				//break;
+			}
+		}
 		// Send the event to the currently active screen for handling
 		ctx->activeScreen->handle_event(ctx->activeScreen, event);
 	}
