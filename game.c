@@ -177,6 +177,8 @@ game_new()
 	pt = level_get_open_point();
 	add_NPC(pt.x, pt.y, 't', 0xFF0000FF, 8, 1, 1);
 
+	pt = level_get_open_point();
+	add_item(pt.x, pt.y, "combat knife", '/', 0xFFFF00FF, "hand", 2);
 
 	generate_map();
 
