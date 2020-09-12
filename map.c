@@ -12,6 +12,7 @@ typedef struct {
 // Tile types; these are used on the map
 typedef enum
 {
+  tile_error,
   tile_floor,
   tile_wall,
 } tile_t;
