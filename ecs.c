@@ -13,6 +13,7 @@ typedef enum {
 	COMP_COMBAT,
 	COMP_EQUIP,
 	COMP_COMBAT_BONUS,
+	COMP_INBACKPACK,
 	COMP_MOVEMENT,
 
 	/* Define other components above here */
@@ -83,6 +84,10 @@ typedef struct {
 	i32 defense;			// defense = damage absorbed before HP is affected
 } CombatBonus;
 
+typedef struct {
+	u32 objectId;
+} InBackpack;
+
 /* World State */
 #define MAX_GO 	1000
 global_variable GameObject *player = NULL;
@@ -96,6 +101,7 @@ global_variable Health healthComps[MAX_GO];
 global_variable Combat combatComps[MAX_GO];
 global_variable Equipment equipComps[MAX_GO];
 global_variable CombatBonus combonusComps[MAX_GO];
+global_variable InBackpack backpackComps[MAX_GO];
 
 /* Game Object Management */
 GameObject *createGameObject() {
@@ -134,8 +140,7 @@ void addComponentToGameObject(GameObject *obj,
 			obj->components[comp] = pos;
 
 			break;
-        }
-			
+        }	
 
 		case COMP_RENDERABLE: {
             Renderable *rnd = &renderableComps[obj->id];
@@ -239,6 +244,14 @@ void addComponentToGameObject(GameObject *obj,
 			break;
 		}
 
+		case COMP_INBACKPACK: {
+			InBackpack *back = &backpackComps[obj->id];
+			InBackpack *backData = (InBackpack *)compData;
+			back->objectId = obj->id;
+
+			obj->components[comp] = back;
+			break;
+		}
 
 		default:
 			assert(1 == 0);
@@ -256,6 +269,7 @@ void destroyGameObject(GameObject *obj) {
 	combatComps[obj->id].objectId = 0;
 	equipComps[obj->id].objectId = 0;
 	combonusComps[obj->id].objectId = 0;
+	backpackComps[obj->id].objectId = 0;
 	// TODO: Clean up other components used by this object
 
 	obj->id = 0;

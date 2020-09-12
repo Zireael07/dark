@@ -76,7 +76,7 @@ internal void gameRender(PT_Console *console){
 	draw_map(console);
 
 	for (u32 i = 1; i < MAX_GO; i++) {
-		if (renderableComps[i].objectId > 0) {
+		if (renderableComps[i].objectId > 0 && !backpackComps[i].objectId > 0) {
 			Position *p = (Position *)getComponentForGameObject(&gameObjects[i], COMP_POSITION);
 			if (fovMap[p->x][p->y] > 0) {
 				PT_ConsolePutCharAt(console, renderableComps[i].glyph, p->x, p->y, 
@@ -268,6 +268,28 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 					combatAttack(player, blockerObj);
 					onPlayerMoved(player);
 				}
+			}
+		}
+
+		if (key == SDLK_g) {
+			GameObject *itemObj = NULL;
+			itemObj = getItemAtPos(playerPos->x, playerPos->y);
+
+			if (itemObj != NULL) {
+				//pick it up
+				InBackpack back_comp = {.objectId = itemObj->id};
+				addComponentToGameObject(itemObj, COMP_INBACKPACK, &back_comp);
+				Name *name_comp = (Name *)getComponentForGameObject(itemObj, COMP_NAME);
+				char *msg = NULL;
+				sasprintf(msg, "You picked up the %s.", name_comp->name);
+				add_message(msg, 0x009900ff);
+				free(msg);
+			}
+			else {
+				char *msg = NULL;
+				sasprintf(msg, "No items to pick up here!");
+				add_message(msg, 0xFFFFFFFF);
+				free(msg);
 			}
 		}
 

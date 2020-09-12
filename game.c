@@ -49,6 +49,7 @@ void combatAttack(GameObject *attacker, GameObject *defender) {
 	char *msg = NULL;
 	sasprintf(msg, "%s attacks %s for %i damage!", name_att->name, name_def->name, damage);
 	add_message(msg, 0xCC0000FF);
+	free(msg);
 
 	health_check_death(defender);
 }
@@ -147,6 +148,24 @@ void onPlayerMoved(GameObject *player) {
 
 		}
 	}
+}
+
+GameObject * getItemAtPos(u8 x, u8 y) {
+	GameObject *itemObj = NULL;
+	Equipment *eq = NULL;
+	for (u32 i = 1; i < MAX_GO; i++) {
+		Position p = positionComps[i];
+		if ((p.objectId > 0) && (p.x == x) && (p.y == y)) {
+			GameObject go = gameObjects[i];
+			eq = (Equipment *)getComponentForGameObject(&go, COMP_EQUIP);
+			if (eq != NULL && !backpackComps[i].objectId > 0) {
+				itemObj = (GameObject *) &gameObjects[i];
+				//printf("Item found!\n");
+				break;
+			}
+		}
+	}
+	return itemObj;
 }
 
 
