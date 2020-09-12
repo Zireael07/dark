@@ -45,9 +45,10 @@ typedef struct {
     asciiChar firstCharInAtlas;
 } PT_Font;
 
-typedef struct {
-    i32 x; i32 y; i32 w; i32 h;
-} PT_Rect;
+// typedef struct {
+//     i32 x; i32 y; i32 w; i32 h;
+// } PT_Rect;
+typedef SDL_Rect PT_Rect;
 
 typedef struct {
     u32 *pixels;      // the screen pixels
@@ -146,6 +147,16 @@ PT_ConsolePutCharAt(PT_Console *con, asciiChar c,
     PT_CopyBlend(con->pixels, &destRect, con->width, 
                  con->font->atlas, &srcRect, con->font->atlasWidth,
                  &fgColor);
+}
+
+internal void 
+PT_ConsolePutStringAt(PT_Console *con, char *string, 
+                      i32 x, i32 y,
+                      u32 fgColor, u32 bgColor) {
+    i32 len = strlen(string);
+    for (i32 i = 0; i < len; i++) {
+        PT_ConsolePutCharAt(con, (asciiChar)string[i], x+i, y, fgColor, bgColor);
+    }
 }
 
 internal void
