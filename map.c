@@ -48,7 +48,7 @@ Point level_get_open_point() {
 	for (;;) {
 		u32 x = rand() % MAP_WIDTH;
 		u32 y = rand() % MAP_HEIGHT;
-		if (map[x][y] == tile_floor) {
+		if (map[x][y] != tile_wall) {
 			return (Point) {x, y};
 		}
 	}
