@@ -24,17 +24,18 @@ typedef struct {
     u32 activeItem;    
 } UIState;
 
-typedef struct {
-    //PT_Console *console;
-    List *views;
-} UIScreen;
-
 typedef void (*RenderFunction)(PT_Console *);
 typedef struct {
     PT_Console *console;
     PT_Rect* pixelRect;
     RenderFunction render;
 } UIView;
+
+typedef struct {
+    //PT_Console *console;
+    List *views;
+    UIView *activeView;
+} UIScreen;
 
 
 /* Data Structure Helper Functions */
