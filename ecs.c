@@ -271,6 +271,7 @@ void *getComponentForGameObject(GameObject *obj,
 void add_NPC(u8 x, u8 y, asciiChar glyph, u32 fgColor, i32 maxHP, i32 attack, i32 defense) {
 	GameObject *npc = createGameObject();
 	Position pos = {.objectId = npc->id, .x = x, .y = y};
+	printf("NPC: x: %d y: %d\n", x, y);
 	addComponentToGameObject(npc, COMP_POSITION, &pos);
 	Renderable rnd = {.objectId = npc->id, .glyph = glyph, .fgColor = fgColor, .bgColor = 0x00000000};
 	addComponentToGameObject(npc, COMP_RENDERABLE, &rnd);
@@ -292,7 +293,7 @@ void add_item(u8 x, u8 y, char *name, asciiChar glyph, u32 fgColor, char *slot,
 	i32 attack) {
 	GameObject *item = createGameObject();
 	Position pos = {.objectId = item->id, .x = x, .y = y};
-	printf("x: %d y: %d", x, y);
+	printf("x: %d y: %d\n", x, y);
 	addComponentToGameObject(item, COMP_POSITION, &pos);
 	Renderable rnd = {.objectId = item->id, .glyph = glyph, .fgColor = fgColor, .bgColor = 0x00000000};
 	addComponentToGameObject(item, COMP_RENDERABLE, &rnd);
