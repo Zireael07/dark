@@ -147,6 +147,127 @@ internal void messageLogRender(PT_Console *console) {
 }
 
 
+// Event Handling --
+
+internal void
+handle_event_in_game(UIScreen *activeScreen, SDL_Event event) 
+{
+	if (event.type == SDL_KEYDOWN) {
+		SDL_Keycode key = event.key.keysym.sym;
+		Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
+
+        if (key == SDLK_UP) {
+			Position newPos = {playerPos->objectId, playerPos->x, playerPos->y - 1};
+			if (canMove(newPos)) { 
+				addComponentToGameObject(player, COMP_POSITION, &newPos);
+				recalculateFOV = true;
+				onPlayerMoved(player);
+			} else {
+				//check for blocking NPCs
+				GameObject *blockerObj = NULL;
+				for (u32 i = 1; i < MAX_GO; i++) {
+					Position p = positionComps[i];
+					if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+						if (healthComps[i].currentHP > 0) {
+							blockerObj = (GameObject *) &gameObjects[i];
+							//printf("Blocker found!\n");
+							break;
+						}
+					}
+				}
+
+				if (blockerObj != NULL) {
+					//printf("We have a blocker!\n");
+					combatAttack(player, blockerObj);
+					onPlayerMoved(player);
+				}
+			}
+		}
+        if (key == SDLK_DOWN) { 
+			Position newPos = {playerPos->objectId, playerPos->x, playerPos->y + 1};
+			if (canMove(newPos)) { 
+				addComponentToGameObject(player, COMP_POSITION, &newPos);
+				recalculateFOV = true;
+				onPlayerMoved(player);
+			} else {
+				//check for blocking NPCs
+				GameObject *blockerObj = NULL;
+				for (u32 i = 1; i < MAX_GO; i++) {
+					Position p = positionComps[i];
+					if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+						if (healthComps[i].currentHP > 0) {
+							blockerObj = (GameObject *) &gameObjects[i];
+							//printf("Blocker found!\n");
+							break;
+						}
+					}
+				}
+
+				if (blockerObj != NULL) {
+					//printf("We have a blocker!\n");
+					combatAttack(player, blockerObj);
+					onPlayerMoved(player);
+				}
+			}
+		}
+        if (key == SDLK_LEFT) { 
+			Position newPos = {playerPos->objectId, playerPos->x - 1, playerPos->y};
+			if (canMove(newPos)) { 
+				addComponentToGameObject(player, COMP_POSITION, &newPos);
+				recalculateFOV = true;
+				onPlayerMoved(player);
+			} else {
+				//check for blocking NPCs
+				GameObject *blockerObj = NULL;
+				for (u32 i = 1; i < MAX_GO; i++) {
+					Position p = positionComps[i];
+					if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+						if (healthComps[i].currentHP > 0) {
+							blockerObj = (GameObject *) &gameObjects[i];
+							//printf("Blocker found!\n");
+							break;
+						}
+					}
+				}
+
+				if (blockerObj != NULL) {
+					//printf("We have a blocker!\n");
+					combatAttack(player, blockerObj);
+					onPlayerMoved(player);
+				}
+			}
+		}
+        if (key == SDLK_RIGHT) { 
+			Position newPos = {playerPos->objectId, playerPos->x + 1, playerPos->y};
+			if (canMove(newPos)) { 
+				addComponentToGameObject(player, COMP_POSITION, &newPos);
+				recalculateFOV = true;
+				onPlayerMoved(player);
+			} else {
+				//check for blocking NPCs
+				GameObject *blockerObj = NULL;
+				for (u32 i = 1; i < MAX_GO; i++) {
+					Position p = positionComps[i];
+					if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+						if (healthComps[i].currentHP > 0) {
+							blockerObj = (GameObject *) &gameObjects[i];
+							//printf("Blocker found!\n");
+							break;
+						}
+					}
+				}
+
+				if (blockerObj != NULL) {
+					//printf("We have a blocker!\n");
+					combatAttack(player, blockerObj);
+					onPlayerMoved(player);
+				}
+			}
+		}
+
+	}
+}
+
 //setup
 internal UIScreen *
 screens_setup() {
@@ -171,5 +292,6 @@ screens_setup() {
 	inGameScreen->views = igViews;
 
     inGameScreen->activeView = mapView;
+	inGameScreen->handle_event = handle_event_in_game;
     return inGameScreen;
 }

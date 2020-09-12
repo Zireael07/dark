@@ -24,7 +24,9 @@ typedef struct {
     u32 activeItem;    
 } UIState;
 
+struct UIScreen;
 typedef void (*RenderFunction)(PT_Console *);
+typedef void (*UIEventHandler)(struct UIScreen *, SDL_Event);
 typedef struct {
     PT_Console *console;
     PT_Rect* pixelRect;
@@ -35,6 +37,7 @@ typedef struct {
     //PT_Console *console;
     List *views;
     UIView *activeView;
+    UIEventHandler handle_event;
 } UIScreen;
 
 
