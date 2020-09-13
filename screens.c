@@ -115,10 +115,9 @@ internal void statsRender(PT_Console *console) {
 
 	//draw player position
 	Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
-	char *msg = NULL;
-	sasprintf(msg, "X: %d Y: %d", playerPos->x, playerPos->y);
+	char *msg = String_Create("X: %d Y: %d", playerPos->x, playerPos->y);
 	PT_ConsolePutStringAt(console, msg, 0, 3, 0x009900FF, 0x00000000);
-
+	String_Destroy(msg);
 }
 
 internal void messageLogRender(PT_Console *console) {
@@ -280,16 +279,14 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 				InBackpack back_comp = {.objectId = itemObj->id};
 				addComponentToGameObject(itemObj, COMP_INBACKPACK, &back_comp);
 				Name *name_comp = (Name *)getComponentForGameObject(itemObj, COMP_NAME);
-				char *msg = NULL;
-				sasprintf(msg, "You picked up the %s.", name_comp->name);
+				char *msg = String_Create("You picked up the %s.", name_comp->name);
 				add_message(msg, 0x009900ff);
-				free(msg);
+				String_Destroy(msg);
 			}
 			else {
-				char *msg = NULL;
-				sasprintf(msg, "No items to pick up here!");
+				char *msg = String_Create("No items to pick up here!");
 				add_message(msg, 0xFFFFFFFF);
-				free(msg);
+				String_Destroy(msg);
 			}
 		}
 

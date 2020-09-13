@@ -43,6 +43,7 @@ global_variable List *messageLog = NULL;
 
 #include "pt_console.c"
 #include "pt_ui.c"
+#include "String.c"
 
 #include "ecs.c"
 #include "map.c"

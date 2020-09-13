@@ -17,16 +17,16 @@ void health_check_death(GameObject *go) {
 	if (h->currentHP <= 0) {
 		// Death!
 		if (go == player) {
-			char *msg = NULL;
-			sasprintf(msg, "You have died.");
+			char *msg = String_Create("You have died.");
 			add_message(msg, 0xCC0000FF);
+			String_Destroy(msg);
 
 			// TODO: Enter endgame flow
 
 		} else {
-			char *msg = NULL;
-			sasprintf(msg, "You killed the [MONSTER].");
+			char *msg = String_Create("You killed the [MONSTER].");
 			add_message(msg, 0xCC0000FF);
+			String_Destroy(msg);
 
 			//remove from ECS
 			destroyGameObject(go);
@@ -46,10 +46,9 @@ void combatAttack(GameObject *attacker, GameObject *defender) {
 	defHealth->currentHP -= damage;
 
 	//printf("%s attacks %s\n", name_att->name, name_def->name);
-	char *msg = NULL;
-	sasprintf(msg, "%s attacks %s for %i damage!", name_att->name, name_def->name, damage);
+	char *msg = String_Create("%s attacks %s for %i damage!", name_att->name, name_def->name, damage);
 	add_message(msg, 0xCC0000FF);
-	free(msg);
+	String_Destroy(msg);
 
 	health_check_death(defender);
 }
