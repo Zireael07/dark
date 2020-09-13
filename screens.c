@@ -10,6 +10,7 @@
 #define INVENTORY_HEIGHT	30
 global_variable UIView *inventoryView = NULL;
 global_variable i32 highlightedIdx = 0;
+global_variable i32 selIdx = 0;
 global_variable i32 inventoryLen = 1;
 
 //Rendering
@@ -180,6 +181,7 @@ render_inventory_view(PT_Console *console)
 			char *itemText = String_Create("%s %-10s %-8s", equipped, name->name, slotStr);
 			//draw highlight
 			if (lineIdx == highlightedIdx) {
+				selIdx = i;
 				PT_ConsolePutStringAt(console, itemText, 4, yIdx, 0xffffffff, 0x80000099);
 			} else {
 				PT_ConsolePutStringAt(console, itemText, 4, yIdx, 0x666666ff, 0x00000000);
@@ -375,6 +377,19 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 				show_inventory_overlay(activeScreen);				
 			} else {
 				hide_inventory_overlay(activeScreen);
+			}
+		}
+		if (key == SDLK_e) {
+			if (inventoryView != NULL) {
+				if (selIdx > 0) {
+					Name *name = NULL;
+					GameObject go = gameObjects[selIdx];
+					name = (Name *)getComponentForGameObject(&go, COMP_NAME);
+					char *msg = String_Create("Player equipped %s", name->name);
+					add_message(msg, 0xFFFFFFFF);
+					String_Destroy(msg);
+					item_toggle_equip(&go);
+				}
 			}
 		}
 

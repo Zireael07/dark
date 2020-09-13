@@ -43,6 +43,31 @@ void combatAttack(GameObject *attacker, GameObject *defender) {
 	Name *name_def = (Name *)getComponentForGameObject(defender, COMP_NAME);
 
 	i32 damage = att->attack;
+
+	//for player only
+	if (attacker == player) {
+		Equipment *eq = NULL;
+		CombatBonus *combonus = NULL;
+		Name *name = NULL;
+		//loop over all equipped items
+		for (u32 i = 1; i < MAX_GO; i++) {
+			GameObject go = gameObjects[i];
+			eq = (Equipment *)getComponentForGameObject(&go, COMP_EQUIP);
+			combonus = (CombatBonus *)getComponentForGameObject(&go, COMP_COMBAT_BONUS);
+			name = (Name *)getComponentForGameObject(&go, COMP_NAME);
+			if (eq != NULL && eq->isEquipped) {
+				// C is funny about strings, again
+				if (strcmp(eq->slot, "hand") == 0) {
+					damage += combonus->attack;
+					char *msg = String_Create("applying bonus from %s +%i, total %i damage!", name->name, combonus->attack, damage);
+					add_message(msg, 0xCC0000FF);
+					String_Destroy(msg);
+				}
+			}
+				
+		}
+	}
+
 	defHealth->currentHP -= damage;
 
 	//printf("%s attacks %s\n", name_att->name, name_def->name);
@@ -167,6 +192,19 @@ GameObject * getItemAtPos(u8 x, u8 y) {
 	return itemObj;
 }
 
+void item_toggle_equip(GameObject *item) {
+	if (item == NULL) { return; }
+
+	Equipment *eq = (Equipment *)getComponentForGameObject(item, COMP_EQUIP);
+	if (eq != NULL) {
+		eq->isEquipped = !eq->isEquipped;
+
+		if (eq->isEquipped) {
+			// Apply any effects of equipping that item?
+			//TODO: Unequip any other items in the same slot
+		}
+	}
+}
 
 
 /* High-level game routines */
