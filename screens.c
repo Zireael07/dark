@@ -413,6 +413,14 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 				}
 			}
 		}
+		//make Esc context-sensitive
+		if (key == SDLK_ESCAPE) {
+			if (inventoryView != NULL) {
+				hide_inventory_overlay(activeScreen);
+			} else {
+		 		should_quit = true;
+			}
+		}
 	}
 }
 

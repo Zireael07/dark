@@ -29,6 +29,8 @@ typedef int64_t		i64;
 #include <emscripten.h>
 #endif
 
+global_variable should_quit = false;
+
 // our own stuff starts here
 #include "utils.c"
 #include "list.c"
@@ -56,7 +58,7 @@ struct context {
     SDL_Renderer *renderer;
     SDL_Texture *screenTexture;
 	UIScreen *activeScreen;
-    bool should_quit;
+    //bool should_quit; //moved to global variable to be able to access it from within a screen
 };
 
 #include "stdio.h"
@@ -123,18 +125,18 @@ void main_loop(void *context) {
 #ifdef __EMSCRIPTEN__
             emscripten_cancel_main_loop();
 #endif
-			ctx->should_quit = true;
+			should_quit = true;
 			break;
 		}
 
 		// Handle "global" keypresses (those not handled on a screen-by-screen basis)
-		if (event.type == SDL_KEYDOWN) {
-			SDL_Keycode key = event.key.keysym.sym;
-			if (key == SDLK_ESCAPE) {
-				ctx->should_quit = true;
-				//break;
-			}
-		}
+		// if (event.type == SDL_KEYDOWN) {
+		// 	SDL_Keycode key = event.key.keysym.sym;
+		// 	if (key == SDLK_ESCAPE) {
+		// 		ctx->should_quit = true;
+		// 		//break;
+		// 	}
+		// }
 		// Send the event to the currently active screen for handling
 		ctx->activeScreen->handle_event(ctx->activeScreen, event);
 	}
@@ -170,15 +172,15 @@ int main() {
 
 	game_new();
 
-	struct context ctx = {.window = window, .screenTexture = screenTexture, .renderer = renderer, .activeScreen = activeScreen, .should_quit = false};
+	struct context ctx = {.window = window, .screenTexture = screenTexture, .renderer = renderer, .activeScreen = activeScreen};
 
 /* Main loop handling */
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(main_loop, &ctx, -1, 1);
 #else
 
-	bool done = false;
-	while (!ctx.should_quit) {
+	//bool done = false;
+	while (!should_quit) {
 		main_loop(&ctx);
 	}
 # endif
