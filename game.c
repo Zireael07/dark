@@ -206,6 +206,34 @@ void item_toggle_equip(GameObject *item) {
 	}
 }
 
+void item_drop(GameObject *item) {
+	if (item == NULL) { return; }
+
+	// Determine player position
+	Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
+
+	// Assigning it the player position
+	Position pos = {.objectId = item->id, .x = playerPos->x, .y = playerPos->y};
+	addComponentToGameObject(item, COMP_POSITION, &pos);
+
+	// Unequip the item if equipped
+	Equipment *eq = (Equipment *)getComponentForGameObject(item, COMP_EQUIP);
+	if (eq->isEquipped) {
+		item_toggle_equip(item);
+	}
+
+	// Drop the item by removing the backpack component!
+	addComponentToGameObject(item, COMP_INBACKPACK, NULL);
+
+	// Display a message to the player
+	Name *name = (Name *)getComponentForGameObject(item, COMP_NAME);
+	char *msg = String_Create("Player dropped the %s.", name->name);
+	add_message(msg, 0x990000ff);
+	String_Destroy(msg);
+
+	
+}
+
 
 /* High-level game routines */
 internal void

@@ -245,11 +245,20 @@ void addComponentToGameObject(GameObject *obj,
 		}
 
 		case COMP_INBACKPACK: {
-			InBackpack *back = &backpackComps[obj->id];
-			InBackpack *backData = (InBackpack *)compData;
-			back->objectId = obj->id;
+			if (compData != NULL) {
+				InBackpack *back = &backpackComps[obj->id];
+				InBackpack *backData = (InBackpack *)compData;
+				back->objectId = obj->id;
 
-			obj->components[comp] = back;
+				obj->components[comp] = back;
+			} else {
+				// Clear component 
+				InBackpack *back = obj->components[COMP_INBACKPACK];
+				if (back != NULL) {
+					obj->components[COMP_INBACKPACK] = NULL;
+					backpackComps[obj->id].objectId = 0;
+				}
+			}
 			break;
 		}
 

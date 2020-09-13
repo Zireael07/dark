@@ -194,6 +194,12 @@ render_inventory_view(PT_Console *console)
 	//track length of inventory
 	inventoryLen = lineIdx-1;
 
+	// Render additional information at bottom of view
+	char *instructions = String_Create("[Up/Down] to select item");
+	char *i2 = String_Create("[Spc] to (un)equip, [D] to drop");
+	PT_ConsolePutStringAt(console, instructions, 5, 25, 0x666666ff, 0x00000000);
+	PT_ConsolePutStringAt(console, i2, 5, 26, 0x666666ff, 0x00000000);
+
 }
 
 // Screen Functions
@@ -379,7 +385,7 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 				hide_inventory_overlay(activeScreen);
 			}
 		}
-		if (key == SDLK_e) {
+		if (key == SDLK_e || key == SDLK_SPACE) {
 			if (inventoryView != NULL) {
 				if (selIdx > 0) {
 					Name *name = NULL;
@@ -392,7 +398,21 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 				}
 			}
 		}
-
+		if (key == SDLK_d) {
+			if (inventoryView != NULL) {
+				if (selIdx > 0) {
+					Name *name = NULL;
+					GameObject go = gameObjects[selIdx];
+					name = (Name *)getComponentForGameObject(&go, COMP_NAME);
+					char *msg = String_Create("Player dropped %s", name->name);
+					add_message(msg, 0xFFFFFFFF);
+					String_Destroy(msg);
+					item_drop(&go);
+					//close inventory
+					hide_inventory_overlay(activeScreen);
+				}
+			}
+		}
 	}
 }
 
