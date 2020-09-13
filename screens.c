@@ -9,6 +9,8 @@
 #define INVENTORY_WIDTH		40
 #define INVENTORY_HEIGHT	30
 global_variable UIView *inventoryView = NULL;
+global_variable i32 highlightedIdx = 0;
+global_variable i32 inventoryLen = 1;
 
 //Rendering
 void draw_map(PT_Console *console){
@@ -165,6 +167,7 @@ render_inventory_view(PT_Console *console)
 
 	//Render list of carried items
 	i32 yIdx = 4;
+	i32 lineIdx = 1; //start at 1 because GameObject indices start at 1
 	Equipment *eq = NULL;
 	Name *name = NULL;
 	for (u32 i = 1; i < MAX_GO; i++) {
@@ -175,10 +178,19 @@ render_inventory_view(PT_Console *console)
 			char *equipped = (eq->isEquipped) ? "*" : ".";
 			char *slotStr = String_Create("[%s]", eq->slot);
 			char *itemText = String_Create("%s %-10s %-8s", equipped, name->name, slotStr);
-			PT_ConsolePutStringAt(console, itemText, 4, yIdx, 0x666666ff, 0x00000000);
+			//draw highlight
+			if (lineIdx == highlightedIdx) {
+				PT_ConsolePutStringAt(console, itemText, 4, yIdx, 0xffffffff, 0x80000099);
+			} else {
+				PT_ConsolePutStringAt(console, itemText, 4, yIdx, 0x666666ff, 0x00000000);
+			}
 			yIdx += 1;
+			lineIdx += 1;
+			
 		}
 	}
+	//track length of inventory
+	inventoryLen = lineIdx-1;
 
 }
 
@@ -215,58 +227,73 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 		Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
 
         if (key == SDLK_UP) {
-			Position newPos = {playerPos->objectId, playerPos->x, playerPos->y - 1};
-			if (canMove(newPos)) { 
-				addComponentToGameObject(player, COMP_POSITION, &newPos);
-				recalculateFOV = true;
-				onPlayerMoved(player);
+			if (inventoryView != NULL) {
+				// Handle for inventory view
+				highlightedIdx -= 1;
+				if (highlightedIdx < 1) { highlightedIdx = 1; }
 			} else {
-				//check for blocking NPCs
-				GameObject *blockerObj = NULL;
-				for (u32 i = 1; i < MAX_GO; i++) {
-					Position p = positionComps[i];
-					if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
-						if (healthComps[i].currentHP > 0) {
-							blockerObj = (GameObject *) &gameObjects[i];
-							//printf("Blocker found!\n");
-							break;
+				// Handle for main in-game screen
+				Position newPos = {playerPos->objectId, playerPos->x, playerPos->y - 1};
+				if (canMove(newPos)) { 
+					addComponentToGameObject(player, COMP_POSITION, &newPos);
+					recalculateFOV = true;
+					onPlayerMoved(player);
+				} else {
+					//check for blocking NPCs
+					GameObject *blockerObj = NULL;
+					for (u32 i = 1; i < MAX_GO; i++) {
+						Position p = positionComps[i];
+						if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+							if (healthComps[i].currentHP > 0) {
+								blockerObj = (GameObject *) &gameObjects[i];
+								//printf("Blocker found!\n");
+								break;
+							}
 						}
 					}
-				}
 
-				if (blockerObj != NULL) {
-					//printf("We have a blocker!\n");
-					combatAttack(player, blockerObj);
-					onPlayerMoved(player);
+					if (blockerObj != NULL) {
+						//printf("We have a blocker!\n");
+						combatAttack(player, blockerObj);
+						onPlayerMoved(player);
+					}
 				}
 			}
 		}
         if (key == SDLK_DOWN) { 
-			Position newPos = {playerPos->objectId, playerPos->x, playerPos->y + 1};
-			if (canMove(newPos)) { 
-				addComponentToGameObject(player, COMP_POSITION, &newPos);
-				recalculateFOV = true;
-				onPlayerMoved(player);
+			if (inventoryView != NULL) {
+				// Handle for inventory view
+				highlightedIdx += 1;
+				if (highlightedIdx > inventoryLen) { highlightedIdx = inventoryLen; }
 			} else {
-				//check for blocking NPCs
-				GameObject *blockerObj = NULL;
-				for (u32 i = 1; i < MAX_GO; i++) {
-					Position p = positionComps[i];
-					if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
-						if (healthComps[i].currentHP > 0) {
-							blockerObj = (GameObject *) &gameObjects[i];
-							//printf("Blocker found!\n");
-							break;
+				// Handle for main in-game view
+				Position newPos = {playerPos->objectId, playerPos->x, playerPos->y + 1};
+				if (canMove(newPos)) { 
+					addComponentToGameObject(player, COMP_POSITION, &newPos);
+					recalculateFOV = true;
+					onPlayerMoved(player);
+				} else {
+					//check for blocking NPCs
+					GameObject *blockerObj = NULL;
+					for (u32 i = 1; i < MAX_GO; i++) {
+						Position p = positionComps[i];
+						if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+							if (healthComps[i].currentHP > 0) {
+								blockerObj = (GameObject *) &gameObjects[i];
+								//printf("Blocker found!\n");
+								break;
+							}
 						}
 					}
-				}
 
-				if (blockerObj != NULL) {
-					//printf("We have a blocker!\n");
-					combatAttack(player, blockerObj);
-					onPlayerMoved(player);
+					if (blockerObj != NULL) {
+						//printf("We have a blocker!\n");
+						combatAttack(player, blockerObj);
+						onPlayerMoved(player);
+					}
 				}
 			}
+			
 		}
         if (key == SDLK_LEFT) { 
 			Position newPos = {playerPos->objectId, playerPos->x - 1, playerPos->y};
