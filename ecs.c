@@ -223,7 +223,7 @@ void addComponentToGameObject(GameObject *obj,
 			eq->objectId = obj->id;
 			eq->quantity = eqData->quantity;
 			eq->weight = eqData->weight;
-			if (eq->slot != NULL) {
+			if (eqData->slot != NULL) {
 				eq->slot = malloc(strlen(eqData->slot) + 1);
 				strcpy(eq->slot, eqData->slot);
 			}

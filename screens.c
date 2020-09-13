@@ -4,6 +4,12 @@
 #define LOG_WIDTH		58
 #define LOG_HEIGHT		5
 
+#define INVENTORY_LEFT		20
+#define INVENTORY_TOP		7
+#define INVENTORY_WIDTH		40
+#define INVENTORY_HEIGHT	30
+global_variable UIView *inventoryView = NULL;
+
 //Rendering
 void draw_map(PT_Console *console){
 	int x;
@@ -151,6 +157,53 @@ internal void messageLogRender(PT_Console *console) {
 	}
 }
 
+internal void 
+render_inventory_view(PT_Console *console) 
+{
+	PT_Rect rect = {0, 0, INVENTORY_WIDTH, INVENTORY_HEIGHT};
+	UI_DrawRect(console, &rect, 0x222222FF, 1, 0xFF990099);
+
+	//Render list of carried items
+	i32 yIdx = 4;
+	Equipment *eq = NULL;
+	Name *name = NULL;
+	for (u32 i = 1; i < MAX_GO; i++) {
+		GameObject go = gameObjects[i];
+		eq = (Equipment *)getComponentForGameObject(&go, COMP_EQUIP);
+		name = (Name *)getComponentForGameObject(&go, COMP_NAME);
+			if (eq != NULL && backpackComps[i].objectId > 0) {
+			char *equipped = (eq->isEquipped) ? "*" : ".";
+			char *slotStr = String_Create("[%s]", eq->slot);
+			char *itemText = String_Create("%s %-10s %-8s", equipped, name->name, slotStr);
+			PT_ConsolePutStringAt(console, itemText, 4, yIdx, 0x666666ff, 0x00000000);
+			yIdx += 1;
+		}
+	}
+
+}
+
+// Screen Functions
+
+internal void 
+hide_inventory_overlay(UIScreen *screen) 
+{
+	if (inventoryView != NULL) {
+		list_remove_element_with_data(screen->views, inventoryView);
+		view_destroy(inventoryView);
+		inventoryView = NULL;
+	}
+}
+
+internal void 
+show_inventory_overlay(UIScreen *screen) 
+{
+	if (inventoryView == NULL) {
+		PT_Rect overlayRect = {(16 * INVENTORY_LEFT), (16 * INVENTORY_TOP), (16 * INVENTORY_WIDTH), (16 * INVENTORY_HEIGHT)};
+		inventoryView = view_new(overlayRect, INVENTORY_WIDTH, INVENTORY_HEIGHT, 
+								   "assets/terminal16x16.png", 0, render_inventory_view);
+		list_insert_after(screen->views, list_tail(screen->views), inventoryView);
+	}
+}
 
 // Event Handling --
 
@@ -269,7 +322,7 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 				}
 			}
 		}
-
+		//other actions
 		if (key == SDLK_g) {
 			GameObject *itemObj = NULL;
 			itemObj = getItemAtPos(playerPos->x, playerPos->y);
@@ -287,6 +340,14 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 				char *msg = String_Create("No items to pick up here!");
 				add_message(msg, 0xFFFFFFFF);
 				String_Destroy(msg);
+			}
+		}
+
+		if (key == SDLK_i) {
+			if (inventoryView == NULL) {
+				show_inventory_overlay(activeScreen);				
+			} else {
+				hide_inventory_overlay(activeScreen);
 			}
 		}
 
