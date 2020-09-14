@@ -126,6 +126,7 @@ void main_loop(void *context) {
             emscripten_cancel_main_loop();
 #endif
 			should_quit = true;
+			game_save();
 			break;
 		}
 
@@ -171,6 +172,9 @@ int main() {
 	activeScreen = screens_setup();
 
 	game_new();
+
+	//load game if any
+	game_load();
 
 	struct context ctx = {.window = window, .screenTexture = screenTexture, .renderer = renderer, .activeScreen = activeScreen};
 

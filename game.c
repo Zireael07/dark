@@ -281,3 +281,108 @@ game_update()
 		recalculateFOV = false;
 	}
 }
+
+void game_save() {	
+	printf("Saving game...\n");
+	//save to file
+	FILE *fp;
+
+	fp = fopen("./world_save.txt", "w+");
+
+	for (u32 i = 1; i < MAX_GO; i++) {
+		GameObject go = gameObjects[i];
+		// only serialize what can change
+		Position *pos = (Position *)getComponentForGameObject(&go, COMP_POSITION);
+		Health *h = (Health *)getComponentForGameObject(&go, COMP_HEALTH);
+		InBackpack *back = (InBackpack *)getComponentForGameObject(&go, COMP_INBACKPACK);
+
+		if (pos != NULL){
+			//debug
+			printf("[%d]. Pos: x %d y %d\n", i, pos->x, pos->y);
+			fprintf(fp, "[%d]. Pos: x %d y %d\n", i, pos->x, pos->y);
+		}
+
+		if (h != NULL && h->currentHP > 0) {
+			//debug
+			printf("[%d]. Current: %d max %d\n", i, h->currentHP, h->maxHP);
+			fprintf(fp, "[%d]. Current: %d max %d\n", i, h->currentHP, h->maxHP);
+		}
+
+		if (back != NULL) {
+			//debug
+			printf("[%d]. Backpack.\n", i);
+			fprintf(fp, "[%d]. Backpack.\n", i);
+		}
+		
+	}
+
+	fclose(fp);
+
+	//dump map to mapfile (NOTE, this one is binary!)
+	fp = fopen("./map_save", "wb");
+	fwrite(seenMap, sizeof(int), MAP_HEIGHT*MAP_WIDTH, fp);
+
+}
+
+void game_load() {
+	FILE *fp;
+   	char buffer[255];
+
+   	fp = fopen("./world_save.txt", "r");
+
+	printf("Loading game...\n");
+
+	//handle case where no save file exists
+	if (fp == NULL) {
+		return;
+	}
+
+	// Loop through each line of the file
+	while (fgets(buffer, 255, fp) != NULL) {
+		//debug
+		printf("Read: %s", buffer);
+		// if line schema fits what we expect for entities
+		if (buffer[0] == '[') {
+			buffer[255-1] = '\0';	// Ensure that our buffer string is null-terminated
+			// this only works for single digits!
+			//int id = buffer[1] - '0';
+			//printf("Id: %d\n", id);
+
+			int id;
+			int x_pos;
+			int y_pos;
+			int r = sscanf(buffer, "[%d]. Pos: x %d y %d", &id, &x_pos, &y_pos);
+			if (r == 3) {
+				printf("Read pos from file: x %d y %d\n", x_pos, y_pos);
+				GameObject* go = &gameObjects[id];
+				Position pos = {go->id, x_pos, y_pos};
+				addComponentToGameObject(go, COMP_POSITION, &pos);
+			}
+
+			i32 currHP;
+			i32 maxHP;
+			r = sscanf(buffer, "[%d]. Current: %d max %d", &id, &currHP, &maxHP);
+			if (r == 3) {
+				printf("Read hp from file: curr %d max %d\n", currHP, maxHP);
+				GameObject* go = &gameObjects[id];
+				Health hlth = {.objectId = go->id, .currentHP = currHP, .maxHP = maxHP, .recoveryRate = 1};
+				addComponentToGameObject(go, COMP_HEALTH, &hlth);
+			}
+
+			r = sscanf(buffer, "[%d]. Backpack", &id);
+			if (r == 1 && buffer[5] == 'B') {
+				printf("Read backpack from file\n");
+				GameObject* go = &gameObjects[id];
+				InBackpack back_comp = {.objectId = go->id};
+				addComponentToGameObject(go, COMP_INBACKPACK, &back_comp);
+			}
+		}
+	}
+
+	//load the map data
+	fp = fopen("./map_save", "rb");
+	fread(seenMap, sizeof(int), MAP_HEIGHT*MAP_WIDTH, fp);
+
+	//force FOV refresh
+	recalculateFOV = true;
+}
