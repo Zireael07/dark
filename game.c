@@ -288,7 +288,11 @@ void game_save() {
 	//save to file
 	FILE *fp;
 
-	fp = fopen("./world_save.txt", "w+");
+	#ifdef __EMSCRIPTEN__
+		fp = fopen("/save/world_save.txt", "w+");
+	#else:
+		fp = fopen("./world_save.txt", "w+");
+	#endif
 
 	for (u32 i = 1; i < MAX_GO; i++) {
 		GameObject go = gameObjects[i];
@@ -319,9 +323,23 @@ void game_save() {
 
 	fclose(fp);
 
-	//dump map to mapfile (NOTE, this one is binary!)
-	fp = fopen("./map_save", "wb");
+	#ifdef __EMSCRIPTEN__
+		fp = fopen("/save/map_save", "wb");
+	#else
+		//dump map to mapfile (NOTE, this one is binary!)
+		fp = fopen("./map_save", "wb");
+	#endif
 	fwrite(seenMap, sizeof(int), MAP_HEIGHT*MAP_WIDTH, fp);
+
+
+	#ifdef __EMSCRIPTEN__
+	// Don't forget to sync to make sure you store it to IndexedDB
+    EM_ASM(
+        FS.syncfs(function (err) {
+            // Error
+        });
+    );
+	#endif
 
 	//now mark the flag that tells the game to quit
 	should_quit = true;
@@ -331,7 +349,11 @@ void game_load() {
 	FILE *fp;
    	char buffer[255];
 
-   	fp = fopen("./world_save.txt", "r");
+	#ifdef __EMSCRIPTEN__
+   		fp = fopen("/save/world_save.txt", "r");
+	#else
+		fp = fopen("./world_save.txt", "r");
+	#endif
 
 	//handle case where no save file exists
 	if (fp == NULL) {
@@ -384,7 +406,11 @@ void game_load() {
 	}
 
 	//load the map data
-	fp = fopen("./map_save", "rb");
+	#ifdef __EMSCRIPTEN__
+		fp = fopen("/save/map_save", "rb");
+	#else
+		fp = fopen("./map_save", "rb");
+	#endif
 	fread(seenMap, sizeof(int), MAP_HEIGHT*MAP_WIDTH, fp);
 
 	//force FOV refresh
