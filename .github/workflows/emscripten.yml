@@ -17,7 +17,7 @@ jobs:
 
       - name: Build
       #  run: make -d
-        run: emcc -Wall -Wextra -Wpedantic -g -O0 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS=["png"] -s ALLOW_MEMORY_GROWTH=1 --no-heap-copy --preload-file assets --shell-file shell_minimal.html dark.c -o ./wasm/index.html
+        run: emcc -Wall -Wextra -Wpedantic -g -O0 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS=["png"] -s ALLOW_MEMORY_GROWTH=1 --no-heap-copy --preload-file assets --lidbfs.js --shell-file shell_minimal.html dark.c -o ./wasm/index.html
 
       - name: Upload wasm
         uses: actions/upload-artifact@v2
