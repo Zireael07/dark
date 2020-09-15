@@ -282,6 +282,7 @@ game_update()
 	}
 }
 
+//NOTE: this assumes we quit after saving!!!!
 void game_save() {	
 	printf("Saving game...\n");
 	//save to file
@@ -322,6 +323,8 @@ void game_save() {
 	fp = fopen("./map_save", "wb");
 	fwrite(seenMap, sizeof(int), MAP_HEIGHT*MAP_WIDTH, fp);
 
+	//now mark the flag that tells the game to quit
+	should_quit = true;
 }
 
 void game_load() {
@@ -330,11 +333,12 @@ void game_load() {
 
    	fp = fopen("./world_save.txt", "r");
 
-	printf("Loading game...\n");
-
 	//handle case where no save file exists
 	if (fp == NULL) {
 		return;
+	} else {
+		//debug
+		printf("Loading game...\n");
 	}
 
 	// Loop through each line of the file

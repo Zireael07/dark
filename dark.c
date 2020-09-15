@@ -122,11 +122,12 @@ void main_loop(void *context) {
 	while (SDL_PollEvent(&event) != 0) {
 
 		if (event.type == SDL_QUIT) {
+			//save game on quit
+			game_save();
 #ifdef __EMSCRIPTEN__
             emscripten_cancel_main_loop();
 #endif
-			should_quit = true;
-			game_save();
+			//should_quit = true;
 			break;
 		}
 
