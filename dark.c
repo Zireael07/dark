@@ -157,13 +157,13 @@ void main_loop(void *context) {
 }
 
 //test exporting
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-void test_export() {
-	printf("Test export!");
-	emscripten_resume_main_loop();
-}
-#endif
+// #ifdef __EMSCRIPTEN__
+// EMSCRIPTEN_KEEPALIVE
+// void test_export() {
+// 	printf("Test export!");
+// 	emscripten_resume_main_loop();
+// }
+// #endif
 
 /* Initialization here */
 int main() {
