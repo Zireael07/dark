@@ -282,8 +282,7 @@ game_update()
 	}
 }
 
-//NOTE: this assumes we quit after saving!!!!
-void game_save() {	
+void game_save(void (*ptr)()) {	
 	printf("Saving game...\n");
 	//save to file
 	FILE *fp;
@@ -337,12 +336,18 @@ void game_save() {
     EM_ASM(
         FS.syncfs(function (err) {
             // Error
+			if (!err) {
+				console.log("Game saved successfully.")
+			}
         });
     );
 	#endif
 
+	//callback/hook
+	(*ptr)();   //calling the callback function
+
 	//now mark the flag that tells the game to quit
-	should_quit = true;
+	//should_quit = true;
 }
 
 void game_load() {

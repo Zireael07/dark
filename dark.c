@@ -113,6 +113,12 @@ void render_screen(SDL_Renderer *renderer, SDL_Texture *screenTexture, UIScreen 
 	SDL_RenderPresent(renderer);
 }
 
+//Savegame callback/hook (https://www.tutorialspoint.com/callbacks-in-c)
+void _on_save_exit() {
+	//now mark the flag that tells the game to quit
+	should_quit = true;
+}
+
 
 /* What it says on the tin */
 void main_loop(void *context) {
@@ -123,7 +129,8 @@ void main_loop(void *context) {
 
 		if (event.type == SDL_QUIT) {
 			//save game on quit
-			game_save();
+			void (*ptr)() = &_on_save_exit; 
+			game_save(ptr);
 #ifdef __EMSCRIPTEN__
             emscripten_cancel_main_loop();
 #endif

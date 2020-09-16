@@ -227,6 +227,8 @@ show_inventory_overlay(UIScreen *screen)
 
 // Event Handling --
 
+void _on_save_dummy(){}
+
 internal void
 handle_event_in_game(UIScreen *activeScreen, SDL_Event event) 
 {
@@ -420,6 +422,11 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 			} else {
 		 		should_quit = true;
 			}
+		}
+		//save
+		if (key == SDLK_s) {
+			void (*ptr)() = &_on_save_dummy;
+			game_save(ptr);
 		}
 	}
 }
