@@ -181,16 +181,17 @@ int main() {
 	});
 
 
-	emscripten_pause_main_loop(); // Will need to wait for FS sync.
+	//emscripten_pause_main_loop(); // Will need to wait for FS sync.
     EM_ASM({
 	    // Then sync
         FS.syncfs(true, function (err) {
             // Error
 			if (!err) {
 				console.log("Successfully mounted and synced the filesystem");
+				//FIXME: any ccall here freezes the browser
 				//call the C function
 				//ccall('game_load', 'v');
-				ccall('test_export', null, []);
+				//ccall('test_export', null, []);
 			}
         });
 	});
