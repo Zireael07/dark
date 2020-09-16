@@ -188,10 +188,9 @@ int main() {
             // Error
 			if (!err) {
 				console.log("Successfully mounted and synced the filesystem");
-				//FIXME: any ccall here freezes the browser
 				//call the C function
-				//ccall('game_load', 'v');
-				ccall('test_export', null, []);
+				ccall('game_load', 'v');
+				//ccall('test_export', null, []);
 			}
         });
 	});
