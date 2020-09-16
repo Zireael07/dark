@@ -157,13 +157,13 @@ void main_loop(void *context) {
 }
 
 //test exporting
-// #ifdef __EMSCRIPTEN__
-// EMSCRIPTEN_KEEPALIVE
-// void test_export() {
-// 	printf("Test export!");
-// 	emscripten_resume_main_loop();
-// }
-// #endif
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+void test_export() {
+	printf("Test export!");
+	emscripten_resume_main_loop();
+}
+#endif
 
 /* Initialization here */
 int main() {
@@ -181,7 +181,7 @@ int main() {
 	});
 
 
-	//emscripten_pause_main_loop(); // Will need to wait for FS sync.
+	emscripten_pause_main_loop(); // Will need to wait for FS sync.
     EM_ASM({
 	    // Then sync
         FS.syncfs(true, function (err) {
@@ -191,7 +191,7 @@ int main() {
 				//FIXME: any ccall here freezes the browser
 				//call the C function
 				//ccall('game_load', 'v');
-				//ccall('test_export', null, []);
+				ccall('test_export', null, []);
 			}
         });
 	});
