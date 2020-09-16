@@ -156,6 +156,11 @@ void main_loop(void *context) {
 	render_screen(ctx->renderer, ctx->screenTexture, ctx->activeScreen);
 }
 
+//test exporting
+void test_export() {
+	printf("Test export!");
+}
+
 /* Initialization here */
 int main() {
 
@@ -175,7 +180,8 @@ int main() {
 			if (!err) {
 				console.log("Successfully mounted and synced the filesystem");
 				//call the C function
-				ccall('game_load', 'v');
+				//ccall('game_load', 'v');
+				ccall('test_export', 'v');
 			}
         });
     );
