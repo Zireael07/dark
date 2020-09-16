@@ -189,7 +189,7 @@ var Module = typeof Module !== 'undefined' ? Module : {};
     }
   
    }
-   loadPackage({"files": [{"filename": "/assets/terminal16x16.png", "start": 0, "end": 8240, "audio": 0}], "remote_package_size": 8240, "package_uuid": "32f52f03-9cab-4e50-8649-8150520bfe38"});
+   loadPackage({"files": [{"filename": "/assets/terminal16x16.png", "start": 0, "end": 8240, "audio": 0}], "remote_package_size": 8240, "package_uuid": "10921701-99db-4f98-8fd4-1410bc7a4bb4"});
   
   })();
   
@@ -6742,6 +6742,9 @@ var _free = Module["_free"] = createExportWrapper("free");
 
 /** @type {function(...*):?} */
 var _game_load = Module["_game_load"] = createExportWrapper("game_load");
+
+/** @type {function(...*):?} */
+var _test_export = Module["_test_export"] = createExportWrapper("test_export");
 
 /** @type {function(...*):?} */
 var _realloc = Module["_realloc"] = createExportWrapper("realloc");
