@@ -382,61 +382,60 @@ void game_load() {
 	//handle case where no save file exists
 	if (fp == NULL) {
 		printf("No save file found...\n");
-		return;
 	} else {
 		//debug
 		printf("Loading game...\n");
-	}
 
-	// Loop through each line of the file
-	while (fgets(buffer, 255, fp) != NULL) {
-		//debug
-		printf("Read: %s", buffer);
-		// if line schema fits what we expect for entities
-		if (buffer[0] == '[') {
-			buffer[255-1] = '\0';	// Ensure that our buffer string is null-terminated
-			// this only works for single digits!
-			//int id = buffer[1] - '0';
-			//printf("Id: %d\n", id);
+		// Loop through each line of the file
+		while (fgets(buffer, 255, fp) != NULL) {
+			//debug
+			printf("Read: %s", buffer);
+			// if line schema fits what we expect for entities
+			if (buffer[0] == '[') {
+				buffer[255-1] = '\0';	// Ensure that our buffer string is null-terminated
+				// this only works for single digits!
+				//int id = buffer[1] - '0';
+				//printf("Id: %d\n", id);
 
-			int id;
-			int x_pos;
-			int y_pos;
-			int r = sscanf(buffer, "[%d]. Pos: x %d y %d", &id, &x_pos, &y_pos);
-			if (r == 3) {
-				printf("Read pos from file: x %d y %d\n", x_pos, y_pos);
-				GameObject* go = &gameObjects[id];
-				Position pos = {go->id, x_pos, y_pos};
-				addComponentToGameObject(go, COMP_POSITION, &pos);
-			}
+				int id;
+				int x_pos;
+				int y_pos;
+				int r = sscanf(buffer, "[%d]. Pos: x %d y %d", &id, &x_pos, &y_pos);
+				if (r == 3) {
+					printf("Read pos from file: x %d y %d\n", x_pos, y_pos);
+					GameObject* go = &gameObjects[id];
+					Position pos = {go->id, x_pos, y_pos};
+					addComponentToGameObject(go, COMP_POSITION, &pos);
+				}
 
-			i32 currHP;
-			i32 maxHP;
-			r = sscanf(buffer, "[%d]. Current: %d max %d", &id, &currHP, &maxHP);
-			if (r == 3) {
-				printf("Read hp from file: curr %d max %d\n", currHP, maxHP);
-				GameObject* go = &gameObjects[id];
-				Health hlth = {.objectId = go->id, .currentHP = currHP, .maxHP = maxHP, .recoveryRate = 1};
-				addComponentToGameObject(go, COMP_HEALTH, &hlth);
-			}
+				i32 currHP;
+				i32 maxHP;
+				r = sscanf(buffer, "[%d]. Current: %d max %d", &id, &currHP, &maxHP);
+				if (r == 3) {
+					printf("Read hp from file: curr %d max %d\n", currHP, maxHP);
+					GameObject* go = &gameObjects[id];
+					Health hlth = {.objectId = go->id, .currentHP = currHP, .maxHP = maxHP, .recoveryRate = 1};
+					addComponentToGameObject(go, COMP_HEALTH, &hlth);
+				}
 
-			r = sscanf(buffer, "[%d]. Backpack", &id);
-			if (r == 1 && buffer[5] == 'B') {
-				printf("Read backpack from file\n");
-				GameObject* go = &gameObjects[id];
-				InBackpack back_comp = {.objectId = go->id};
-				addComponentToGameObject(go, COMP_INBACKPACK, &back_comp);
+				r = sscanf(buffer, "[%d]. Backpack", &id);
+				if (r == 1 && buffer[5] == 'B') {
+					printf("Read backpack from file\n");
+					GameObject* go = &gameObjects[id];
+					InBackpack back_comp = {.objectId = go->id};
+					addComponentToGameObject(go, COMP_INBACKPACK, &back_comp);
+				}
 			}
 		}
-	}
 
-	//load the map data
-	#ifdef __EMSCRIPTEN__
-		fp = fopen("/save/map_save", "rb");
-	#else
-		fp = fopen("./map_save", "rb");
-	#endif
-	fread(seenMap, sizeof(int), MAP_HEIGHT*MAP_WIDTH, fp);
+		//load the map data
+		#ifdef __EMSCRIPTEN__
+			fp = fopen("/save/map_save", "rb");
+		#else
+			fp = fopen("./map_save", "rb");
+		#endif
+		fread(seenMap, sizeof(int), MAP_HEIGHT*MAP_WIDTH, fp);
+	}
 
 	//force FOV refresh
 	recalculateFOV = true;
