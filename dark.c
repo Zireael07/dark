@@ -172,17 +172,17 @@ int main() {
 	/* Setup Emscripten file system!!! */
 	// EM_ASM is a macro to call in-line JavaScript code.
 	//EM_JS doesn't inline
-    EM_ASM(
+    EM_ASM({
         // Make a directory other than '/'
 		// https://github.com/emscripten-core/emscripten/issues/2040 - root cannot be mounted as anything else than MEMFS
         FS.mkdir('/save');
         // Then mount with IDBFS type
         FS.mount(IDBFS, {}, '/save');
-	);
+	});
 
 
 	emscripten_pause_main_loop(); // Will need to wait for FS sync.
-    EM_ASM(
+    EM_ASM({
 	    // Then sync
         FS.syncfs(true, function (err) {
             // Error
@@ -190,10 +190,10 @@ int main() {
 				console.log("Successfully mounted and synced the filesystem");
 				//call the C function
 				//ccall('game_load', 'v');
-				ccall('test_export', null);
+				ccall('test_export', null, []);
 			}
         });
-    );
+	});
 	#endif
 
 	SDL_Init(SDL_INIT_VIDEO);
