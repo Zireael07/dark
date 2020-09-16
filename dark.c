@@ -174,6 +174,8 @@ int main() {
             // Error
 			if (!err) {
 				console.log("Successfully mounted and synced the filesystem");
+				//call the C function
+				ccall('game_load', 'v');
 			}
         });
     );
@@ -201,8 +203,10 @@ int main() {
 
 	game_new();
 
-	//load game if any
-	game_load();
+	#ifndef __EMSCRIPTEN__
+		//load game if any
+		game_load();
+	#endif
 
 	struct context ctx = {.window = window, .screenTexture = screenTexture, .renderer = renderer, .activeScreen = activeScreen};
 
