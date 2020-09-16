@@ -172,6 +172,9 @@ int main() {
         // Then sync
         FS.syncfs(true, function (err) {
             // Error
+			if (!err) {
+				console.log("Successfully mounted and synced the filesystem");
+			}
         });
     );
 	#endif
