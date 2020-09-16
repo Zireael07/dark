@@ -289,6 +289,9 @@ void game_save(void (*ptr)()) {
 
 	#ifdef __EMSCRIPTEN__
 		fp = fopen("/save/world_save.txt", "w+");
+		if (fp) {
+			printf("Writing to file...\n");
+		}
 	#else:
 		fp = fopen("./world_save.txt", "w+");
 	#endif
@@ -323,13 +326,29 @@ void game_save(void (*ptr)()) {
 	fclose(fp);
 
 	#ifdef __EMSCRIPTEN__
+	// Don't forget to sync to make sure you store it to IndexedDB
+    EM_ASM(
+        FS.syncfs(function (err) {
+            // Error
+			if (!err) {
+				console.log("Game saved successfully.")
+			}
+        });
+    );
+	#endif
+
+	#ifdef __EMSCRIPTEN__
 		fp = fopen("/save/map_save", "wb");
+		if (fp) {
+			printf("Writing to map file...\n");
+		}
 	#else
 		//dump map to mapfile (NOTE, this one is binary!)
 		fp = fopen("./map_save", "wb");
 	#endif
 	fwrite(seenMap, sizeof(int), MAP_HEIGHT*MAP_WIDTH, fp);
 
+	fclose(fp);
 
 	#ifdef __EMSCRIPTEN__
 	// Don't forget to sync to make sure you store it to IndexedDB
@@ -362,6 +381,7 @@ void game_load() {
 
 	//handle case where no save file exists
 	if (fp == NULL) {
+		printf("No save file found...\n");
 		return;
 	} else {
 		//debug
