@@ -157,9 +157,13 @@ void main_loop(void *context) {
 }
 
 //test exporting
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
 void test_export() {
 	printf("Test export!");
+	emscripten_resume_main_loop();
 }
+#endif
 
 /* Initialization here */
 int main() {
@@ -167,14 +171,19 @@ int main() {
 	#ifdef __EMSCRIPTEN__
 	/* Setup Emscripten file system!!! */
 	// EM_ASM is a macro to call in-line JavaScript code.
+	//EM_JS doesn't inline
     EM_ASM(
         // Make a directory other than '/'
 		// https://github.com/emscripten-core/emscripten/issues/2040 - root cannot be mounted as anything else than MEMFS
         FS.mkdir('/save');
         // Then mount with IDBFS type
         FS.mount(IDBFS, {}, '/save');
+	);
 
-        // Then sync
+
+	emscripten_pause_main_loop(); // Will need to wait for FS sync.
+    EM_ASM(
+	    // Then sync
         FS.syncfs(true, function (err) {
             // Error
 			if (!err) {
