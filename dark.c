@@ -181,7 +181,7 @@ int main() {
 				console.log("Successfully mounted and synced the filesystem");
 				//call the C function
 				//ccall('game_load', 'v');
-				ccall('test_export', 'v');
+				ccall('test_export', null);
 			}
         });
     );
