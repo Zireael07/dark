@@ -1,0 +1,91 @@
+{
+    "cop" : {
+    "name" : "Cop",
+    "renderable": {
+        "glyph" : "c",
+        "fg" : [0, 0, 255],
+        "bg" : [0, 0, 0],
+        "order" : 2
+    },
+    "blocks_tile" : true,
+    "stats" : {
+        "hp" : 16,
+        "defense" : 1,
+        "power" : 4
+    },
+    "faction": "Cop",
+    "equipment": [ "Sheriff's shirt", "Jeans", "Boots"]
+    },
+
+    "thug" : {
+    "name" : "Thug",
+    "renderable": {
+        "glyph" : "t",
+        "fg" : [255, 255, 255],
+        "bg" : [0, 0, 0],
+        "order" : 2
+    },
+    "blocks_tile" : true,
+    "stats" : {
+        "hp" : 8,
+        "defense" : 1,
+        "power" : 3
+
+    },
+    "equipment": [ "Leather jacket", "Jeans", "Boots" ]
+    },
+    
+    "barkeep": {
+        "name" : "Barkeep",
+        "renderable": {
+            "glyph" : "☺",
+            "fg" : [238,130, 238],
+            "bg" : [0,0,0],
+            "order" : 2
+        },
+        "blocks_tile" : true,
+        "stats" : {
+            "max_hp" : 16,
+            "hp" : 16,
+            "defense" : 1,
+            "power" : 4
+        },
+        "faction": "neutral"
+    },
+    "shady": {
+        "name" : "Shady Salesman",
+        "renderable": {
+            "glyph" : "v",
+            "fg" : [170, 170, 170],
+            "bg" : [0,0,0],
+            "order" : 2
+        },
+        "blocks_tile" : true,
+        "stats" : {
+            "max_hp" : 16,
+            "hp" : 16,
+            "defense" : 1,
+            "power" : 4
+        },
+        "faction": "neutral"
+    },
+
+    "patron": {
+        "name" : "Patron",
+        "renderable": {
+            "glyph" : "☺",
+            "fg" : [170, 170, 170],
+            "bg" : [0,0,0],
+            "order" : 2
+        },
+        "blocks_tile" : true,
+        "stats" : {
+            "max_hp" : 16,
+            "hp" : 16,
+            "defense" : 1,
+            "power" : 4
+        },
+        "faction": "neutral",
+        "movement": "random"
+    }
+}
