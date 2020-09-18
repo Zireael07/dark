@@ -29,7 +29,7 @@ typedef int64_t		i64;
 #include <emscripten.h>
 #endif
 
-global_variable should_quit = false;
+global_variable bool should_quit = false;
 
 #include "json.h"
 

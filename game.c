@@ -292,7 +292,7 @@ void game_save(void (*ptr)()) {
 		if (fp) {
 			printf("Writing to file...\n");
 		}
-	#else:
+	#else
 		fp = fopen("./world_save.txt", "w+");
 	#endif
 
