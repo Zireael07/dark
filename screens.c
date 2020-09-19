@@ -13,6 +13,8 @@ global_variable i32 highlightedIdx = 0;
 global_variable i32 selIdx = 0;
 global_variable i32 inventoryLen = 1;
 
+global_variable Point mousePos = {0,0};
+
 //Rendering
 void draw_map(PT_Console *console){
 	int x;
@@ -82,6 +84,7 @@ void debug_draw_Dijkstra(PT_Console *console){
 
 internal void gameRender(PT_Console *console){
 	//PT_ConsolePutCharAt(console, '@', player.pos_x, player.pos_y, 0xFFFFFFFF, 0x000000FF);
+
 	draw_map(console);
 
 	for (u32 i = 1; i < MAX_GO; i++) {
@@ -93,6 +96,10 @@ internal void gameRender(PT_Console *console){
 			}
 		}
 	}
+
+	//mouse highlight test
+	//should use console->cellWidth and console->cellHeight, but that blows up occasionally?
+	PT_ConsolePutCharAt(console, '#', mousePos.x/16, mousePos.y/16, 0x00000000, 0x586e75FF); //solarized green bg
 
 	//debug Dijkstra map
 	//debug_draw_Dijkstra(console);
@@ -127,6 +134,11 @@ internal void statsRender(PT_Console *console) {
 	char *msg = String_Create("X: %d Y: %d", playerPos->x, playerPos->y);
 	PT_ConsolePutStringAt(console, msg, 0, 3, 0x009900FF, 0x00000000);
 	String_Destroy(msg);
+	//debug mouse pos
+	char *mouse = String_Create("Mouse X: %d Y: %d", mousePos.x/16, mousePos.y/16);
+	PT_ConsolePutStringAt(console, mouse, 0, 4, 0x009900FF, 0x00000000);
+	String_Destroy(mouse);
+
 }
 
 internal void messageLogRender(PT_Console *console) {
@@ -232,6 +244,14 @@ void _on_save_dummy(){}
 internal void
 handle_event_in_game(UIScreen *activeScreen, SDL_Event event) 
 {
+	//If mouse event happened
+    if( event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP )
+    {
+        //Get mouse position
+        //int x, y;
+        SDL_GetMouseState( &(mousePos.x), &(mousePos.y) );
+	}
+
 	if (event.type == SDL_KEYDOWN) {
 		SDL_Keycode key = event.key.keysym.sym;
 		Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
