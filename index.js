@@ -189,7 +189,7 @@ var Module = typeof Module !== 'undefined' ? Module : {};
     }
   
    }
-   loadPackage({"files": [{"filename": "/assets/npcs.json", "start": 0, "end": 1916, "audio": 0}, {"filename": "/assets/terminal16x16.png", "start": 1916, "end": 10156, "audio": 0}], "remote_package_size": 10156, "package_uuid": "573b5701-0251-447f-9a81-baccf5da200b"});
+   loadPackage({"files": [{"filename": "/assets/npcs.json", "start": 0, "end": 1916, "audio": 0}, {"filename": "/assets/terminal16x16.png", "start": 1916, "end": 10156, "audio": 0}], "remote_package_size": 10156, "package_uuid": "6cd31af2-0e67-4643-b60d-72b2acb6385e"});
   
   })();
   
