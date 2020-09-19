@@ -110,6 +110,24 @@ internal void statsRender(PT_Console *console) {
 	PT_Rect rect = {0, 0, STATS_WIDTH, STATS_HEIGHT};
 	UI_DrawRect(console, &rect, 0x222222FF, 0, 0xFF990099); //light gray
 
+	//menu button
+	char *menu_label = String_Create("Inventory");
+	 // Check if the button should be hot
+	 //all calculations only within this console
+    PT_Rect pixelRect = { 
+        rect.x = ((STATS_WIDTH/2)-5) * console->cellWidth,
+        rect.y = 0 * console->cellHeight,
+        rect.w = 9 * console->cellWidth,
+        rect.h = 1 * console->cellHeight
+    }; 
+    if (UI_PointInRect(mousePos.x, mousePos.y-MAP_HEIGHT*16, &pixelRect)) {
+		PT_ConsolePutStringAt(console, menu_label, (STATS_WIDTH/2)-5, 0, 0xFF990099, 0x586e75FF);
+	}
+	else {
+		PT_ConsolePutStringAt(console, menu_label, (STATS_WIDTH/2)-5, 0, 0xFF990099, 0x00000000);
+	}
+	String_Destroy(menu_label);
+
 	// HP health bar
 	Health *playerHealth = getComponentForGameObject(player, COMP_HEALTH);
 	PT_ConsolePutCharAt(console, 'H', 0, 1, 0xFF990099, 0x00000000); //brown
@@ -254,6 +272,25 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 	if ( event.type == SDL_MOUSEBUTTONDOWN) {
 		//left click to move
 		if (event.button.button == SDL_BUTTON_LEFT){
+			//handle GUI
+			// Check if mouse is on button
+			PT_Rect pixelRect = { 
+				((STATS_WIDTH/2)-5) * 16,
+				0,
+				9 * 16,
+				1 * 16
+			}; 
+			//printf("rect: %d %d w: %d h: %d\n", pixelRect.x, pixelRect.y, pixelRect.w, pixelRect.h);
+			if (UI_PointInRect(mousePos.x, mousePos.y-MAP_HEIGHT*16, &pixelRect)) {
+				//printf("Clicked on menu\n");
+				//equivalent of 'i' keybind
+				if (inventoryView == NULL) {
+					show_inventory_overlay(activeScreen);				
+				} else {
+					hide_inventory_overlay(activeScreen);
+				}
+			}
+
 			Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
 			float distance = getDistance(playerPos->x, playerPos->y, mousePos.x/16, mousePos.y/16);
 			if (distance < 2){
