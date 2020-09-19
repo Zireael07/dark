@@ -124,3 +124,9 @@ void generate_Dijkstra_map(i32 targetX, i32 targetY) {
 
 	targetMap = dmap;
 }
+
+float getDistance(int sx, int sy, int tx, int ty) {
+	int dx=sx-tx;
+	int dy=sy-ty;
+	return sqrt((float)(dx*dx+dy*dy));
+}

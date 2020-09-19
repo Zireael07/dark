@@ -251,6 +251,66 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
         //int x, y;
         SDL_GetMouseState( &(mousePos.x), &(mousePos.y) );
 	}
+	if ( event.type == SDL_MOUSEBUTTONDOWN) {
+		//left click to move
+		if (event.button.button == SDL_BUTTON_LEFT){
+			Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
+			float distance = getDistance(playerPos->x, playerPos->y, mousePos.x/16, mousePos.y/16);
+			if (distance < 2){
+				int dx = mousePos.x/16-playerPos->x;
+				int dy = mousePos.y/16-playerPos->y;
+				//usual move code
+				Position newPos = {playerPos->objectId, playerPos->x + dx, playerPos->y + dy};
+				if (canMove(newPos)) { 
+					addComponentToGameObject(player, COMP_POSITION, &newPos);
+					recalculateFOV = true;
+					onPlayerMoved(player);
+				} else {
+					//check for blocking NPCs
+					GameObject *blockerObj = NULL;
+					for (u32 i = 1; i < MAX_GO; i++) {
+						Position p = positionComps[i];
+						if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+							if (healthComps[i].currentHP > 0) {
+								blockerObj = (GameObject *) &gameObjects[i];
+								//printf("Blocker found!\n");
+								break;
+							}
+						}
+					}
+
+					if (blockerObj != NULL) {
+						//printf("We have a blocker!\n");
+						combatAttack(player, blockerObj);
+						onPlayerMoved(player);
+					}
+				}
+			}
+		}
+		// right click is the equivalent of 'g' keypress (for now)
+		if (event.button.button == SDL_BUTTON_RIGHT) {
+			GameObject *itemObj = NULL;
+			Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
+			itemObj = getItemAtPos(playerPos->x, playerPos->y);
+
+			if (itemObj != NULL) {
+				//pick it up
+				InBackpack back_comp = {.objectId = itemObj->id};
+				addComponentToGameObject(itemObj, COMP_INBACKPACK, &back_comp);
+				Name *name_comp = (Name *)getComponentForGameObject(itemObj, COMP_NAME);
+				char *msg = String_Create("You picked up the %s.", name_comp->name);
+				add_message(msg, 0x009900ff);
+				String_Destroy(msg);
+			}
+			else {
+				char *msg = String_Create("No items to pick up here!");
+				add_message(msg, 0xFFFFFFFF);
+				String_Destroy(msg);
+			}
+		}
+
+	}
+
 
 	if (event.type == SDL_KEYDOWN) {
 		SDL_Keycode key = event.key.keysym.sym;
