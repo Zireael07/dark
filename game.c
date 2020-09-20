@@ -174,6 +174,36 @@ void onPlayerMoved(GameObject *player) {
 	}
 }
 
+void PlayerMove(Position *playerPos, u8 dx, u8 dy) {
+	Position newPos = {playerPos->objectId, playerPos->x + dx, playerPos->y + dy};
+	if (canMove(newPos)) { 
+		addComponentToGameObject(player, COMP_POSITION, &newPos);
+		recalculateFOV = true;
+		onPlayerMoved(player);
+	} else {
+		//check for blocking NPCs
+		GameObject *blockerObj = NULL;
+		for (u32 i = 1; i < MAX_GO; i++) {
+			Position p = positionComps[i];
+			if ((p.objectId > 0) && (p.x == newPos.x) && (p.y == newPos.y)) {
+				if (healthComps[i].currentHP > 0) {
+					blockerObj = (GameObject *) &gameObjects[i];
+					//printf("Blocker found!\n");
+					break;
+				}
+			}
+		}
+
+		if (blockerObj != NULL) {
+			//printf("We have a blocker!\n");
+			combatAttack(player, blockerObj);
+			onPlayerMoved(player);
+		}
+	}
+}
+				
+
+
 GameObject * getItemAtPos(u8 x, u8 y) {
 	GameObject *itemObj = NULL;
 	Equipment *eq = NULL;
