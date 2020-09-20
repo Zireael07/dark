@@ -273,6 +273,32 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 		//left click to move
 		if (event.button.button == SDL_BUTTON_LEFT){
 			//handle GUI
+			//inventory
+			if (inventoryView != NULL) {
+				// Check if mouse is on button
+				PT_Rect pixelRect = { 
+					(16 * INVENTORY_LEFT), (16 * (INVENTORY_TOP + 4)), (16 * INVENTORY_WIDTH), (16 * 1)	}; 
+				//printf("rect: %d %d w: %d h: %d\n", pixelRect.x, pixelRect.y, pixelRect.w, pixelRect.h);
+				if (UI_PointInRect(mousePos.x, mousePos.y, &pixelRect)) {
+					printf("Clicked on inventory entry 1\n");
+					if (highlightedIdx < 1) { highlightedIdx = 1; }
+					//equivalent of 'e' keybind
+					if (selIdx > 0) {
+						Name *name = NULL;
+						GameObject go = gameObjects[selIdx];
+						name = (Name *)getComponentForGameObject(&go, COMP_NAME);
+						char *msg = String_Create("Player equipped %s", name->name);
+						add_message(msg, 0xFFFFFFFF);
+						String_Destroy(msg);
+						item_toggle_equip(&go);
+					}
+
+				}
+
+				return;
+			}
+
+
 			// Check if mouse is on button
 			PT_Rect pixelRect = { 
 				((STATS_WIDTH/2)-5) * 16,
@@ -326,6 +352,35 @@ handle_event_in_game(UIScreen *activeScreen, SDL_Event event)
 		}
 		// right click is the equivalent of 'g' keypress (for now)
 		if (event.button.button == SDL_BUTTON_RIGHT) {
+			//inventory
+			if (inventoryView != NULL) {
+				// Check if mouse is on button
+				PT_Rect pixelRect = { 
+					(16 * INVENTORY_LEFT), (16 * (INVENTORY_TOP + 4)), (16 * INVENTORY_WIDTH), (16 * 1)	}; 
+				//printf("rect: %d %d w: %d h: %d\n", pixelRect.x, pixelRect.y, pixelRect.w, pixelRect.h);
+				if (UI_PointInRect(mousePos.x, mousePos.y, &pixelRect)) {
+					printf("Right clicked on inventory entry 1\n");
+					//if (highlightedIdx < 1) { highlightedIdx = 1; }
+					//equivalent of 'd' keybind
+					if (selIdx > 0) {
+						Name *name = NULL;
+						GameObject go = gameObjects[selIdx];
+						name = (Name *)getComponentForGameObject(&go, COMP_NAME);
+						char *msg = String_Create("Player dropped %s", name->name);
+						add_message(msg, 0xFFFFFFFF);
+						String_Destroy(msg);
+						item_drop(&go);
+						//close inventory
+						hide_inventory_overlay(activeScreen);
+					}
+				} else {
+					//close inventory
+					hide_inventory_overlay(activeScreen);
+				}
+
+				return;
+			}
+
 			GameObject *itemObj = NULL;
 			Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
 			itemObj = getItemAtPos(playerPos->x, playerPos->y);
