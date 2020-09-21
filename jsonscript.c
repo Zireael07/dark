@@ -82,14 +82,44 @@ void JLisp_print(char* exp) {
 }
 
 // sample functions exposed to scripting
-int Add(int a, int b, int c) 
-{ return a + b + c; }
-int Subtract(int a, int b) 
-{ return a - b; }
-int Multiply(int a, int b) 
-{ return a * b; }
-int Divide(int a, int b) 
-{ return a / b; }
+// all of them expose the same API (return int and take json_value_s*)
+int Add(struct json_value_s* a, struct json_value_s* b, struct json_value_s* c) { 
+	struct json_number_s* leaf_num = json_value_as_number(a);
+	int a_int = atoi(leaf_num->number);
+	leaf_num = json_value_as_number(b);
+	int b_int = atoi(leaf_num->number);
+	leaf_num = json_value_as_number(c);
+	int c_int = atoi(leaf_num->number);
+	return a_int + b_int + c_int; 
+}
+int Subtract(struct json_value_s* a, struct json_value_s* b) { 
+	struct json_number_s* leaf_num = json_value_as_number(a);
+	int a_int = atoi(leaf_num->number);
+	leaf_num = json_value_as_number(b);
+	int b_int = atoi(leaf_num->number);
+	return a_int - b_int; 
+}
+int Multiply(struct json_value_s* a, struct json_value_s* b) { 
+	struct json_number_s* leaf_num = json_value_as_number(a);
+	int a_int = atoi(leaf_num->number);
+	leaf_num = json_value_as_number(b);
+	int b_int = atoi(leaf_num->number);
+	return a_int * b_int; 
+}
+int Divide(struct json_value_s* a, struct json_value_s* b) { 
+	struct json_number_s* leaf_num = json_value_as_number(a);
+	int a_int = atoi(leaf_num->number);
+	leaf_num = json_value_as_number(b);
+	int b_int = atoi(leaf_num->number);
+	return a_int / b_int; 
+}
+int String_Test(struct json_value_s a) {
+	struct json_string_s* leaf_str = json_value_as_string(&a);
+	char *str = leaf_str->string;
+	printf("Test %s", str);
+	free(str);
+	return 0; //default
+}
 
 //based on https://stackoverflow.com/questions/60808663/point-to-functions-with-different-arguments-using-the-same-pointer
 typedef struct
@@ -100,7 +130,10 @@ typedef struct
 	int (*func)();
 } command_info;
 //lookup table aka dispatch table aka environment
-command_info command_table[] = {{"+", 3, &Add}, {"-", 2, &Subtract}, {"*", 2, &Multiply}, {"/", 2, &Divide} };
+command_info command_table[] = {{"+", 3, &Add}, {"-", 2, &Subtract}, {"*", 2, &Multiply}, {"/", 2, &Divide}, 
+{"test", 1, &String_Test} };
+
+
 
 
 int JLisp_eval(struct json_value_s* value){
@@ -117,37 +150,49 @@ int JLisp_eval(struct json_value_s* value){
 		struct json_string_s* leaf_str = json_value_as_string(leaf_val);
 		char *str = leaf_str->string;
 		printf("Op: %s\n", str);
+
 		//remaining children are parameters
-		int args[20];
+		struct json_value_s* args[20];
 		int cnt = 0;
 		while (leaf->next != NULL){
 			leaf = leaf->next;
 			leaf_val = leaf->value;
-			if (leaf_val->type == json_type_number) {
-				struct json_number_s* leaf_num = json_value_as_number(leaf_val);
-				int i = atoi(leaf_num->number);
-				args[cnt] = i;
-				cnt += 1;
-			}
-		}
-		printf("Args: %d %d %d\n", args[0], args[1], args[2]);
+			args[cnt] = leaf_val;
+			cnt += 1;
 
-		//TODO: get rid of that loop by making command_table a hashmap
+			// if (leaf_val->type == json_type_number) {
+			// 	struct json_number_s* leaf_num = json_value_as_number(leaf_val);
+			// 	int i = atoi(leaf_num->number);
+			// 	args[cnt] = i;
+			// 	cnt += 1;
+			// }
+		}
+
+		//printf("Args: %d %d %d\n", args[0], args[1], args[2]);
+
+		//TODO: get rid of that outer loop by making command_table a hashmap
 		int i;
 		for(i = 0; i < 4; i++) {
 			if (strcmp(str, command_table[i].name) == 0) {
 				//check number of parameters
 				if (command_table[i].num_args == cnt) {
 					int res = -1;
-					//call it
-					if (cnt == 2){
-						res = command_table[i].func(args[0], args[1]);
-					}
-					
-					if (cnt == 3){
-						res = command_table[i].func(args[0], args[1], args[2]);
-					}
 					printf("Match! %s\n", command_table[i].name);
+					//call it
+					switch (cnt)
+					{
+						case 2: {
+							res = command_table[i].func(args[0], args[1]);
+							break;
+						}
+						case 3: {
+							res = command_table[i].func(args[0], args[1], args[2]);
+							break;
+						}
+						default:
+							break;
+					}
+
 					printf("Result: %d\n", res);
 				}
 				else {
@@ -167,7 +212,7 @@ int JLisp_eval(struct json_value_s* value){
 		//look it up in the command table
 		int i;
 		int res = -1;
-		//TODO: get rid of that loop by making command_table a hashmap
+		//TODO: get rid of that outer loop by making command_table a hashmap
 		for(i = 0; i < 4; i++) {
 			if (strcmp(str, command_table[i].name) == 0) {
 				//call it
@@ -181,10 +226,10 @@ int JLisp_eval(struct json_value_s* value){
 				printf("No match: %s\n", command_table[i].name);
 			}
 		}
-		//it wasn't found
+		//it wasn't found, assume it's a normal string
 		if (res == -1) {
-			// 		printf("Function %s not found in command table", str);
-			//return NULL;
+			printf("Function %s not found in command table", str);
+			return str;
 		}
 
 		//return res;
