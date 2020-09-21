@@ -15,6 +15,8 @@ global_variable i32 inventoryLen = 1;
 
 global_variable Point mousePos = {0,0};
 
+#include "colors.c"
+
 //Rendering
 void draw_map(PT_Console *console){
 	int x;
@@ -51,10 +53,10 @@ void draw_map(PT_Console *console){
 				}
 
 				if (seenMap[x][y] > 0) {
-					fgColor = 0x7F7F7FFF;
+					fgColor = color_light_gray;
 				}
 				if (fovMap[x][y] > 0) {
-					fgColor = 0xFFFFFFFF;
+					fgColor = color_white;
 				}
 				
 				
@@ -99,7 +101,7 @@ internal void gameRender(PT_Console *console){
 
 	//mouse highlight test
 	//should use console->cellWidth and console->cellHeight, but that blows up occasionally?
-	PT_ConsolePutCharAt(console, '#', mousePos.x/16, mousePos.y/16, 0x00000000, 0x586e75FF); //solarized green bg
+	PT_ConsolePutCharAt(console, '#', mousePos.x/16, mousePos.y/16, 0x00000000, color_solarized_green); //solarized green bg
 
 	//debug Dijkstra map
 	//debug_draw_Dijkstra(console);
@@ -121,17 +123,17 @@ internal void statsRender(PT_Console *console) {
         rect.h = 1 * console->cellHeight
     }; 
     if (UI_PointInRect(mousePos.x, mousePos.y-MAP_HEIGHT*16, &pixelRect)) {
-		PT_ConsolePutStringAt(console, menu_label, (STATS_WIDTH/2)-5, 0, 0xFF990099, 0x586e75FF);
+		PT_ConsolePutStringAt(console, menu_label, (STATS_WIDTH/2)-5, 0, color_cyan, 0x586e75FF);
 	}
 	else {
-		PT_ConsolePutStringAt(console, menu_label, (STATS_WIDTH/2)-5, 0, 0xFF990099, 0x00000000);
+		PT_ConsolePutStringAt(console, menu_label, (STATS_WIDTH/2)-5, 0, color_cyan, 0x00000000);
 	}
 	String_Destroy(menu_label);
 
 	// HP health bar
 	Health *playerHealth = getComponentForGameObject(player, COMP_HEALTH);
-	PT_ConsolePutCharAt(console, 'H', 0, 1, 0xFF990099, 0x00000000); //brown
-	PT_ConsolePutCharAt(console, 'P', 1, 1, 0xFF990099, 0x00000000);
+	PT_ConsolePutCharAt(console, 'H', 0, 1, color_cyan, 0x00000000); //brown
+	PT_ConsolePutCharAt(console, 'P', 1, 1, color_cyan, 0x00000000);
 	i32 leftX = 3;
 	i32 barWidth = 16;
 
@@ -139,22 +141,22 @@ internal void statsRender(PT_Console *console) {
 	for (i32 x = 0; x < barWidth; x++) {
 		if (x < healthCount) {
 			//PT_ConsolePutCharAt(console, '#', leftX + x, 41, 0x009900FF, 0x00000000);	//green	
-			PT_ConsolePutCharAt(console, 176, leftX + x, 1, 0x009900FF, 0x00000000); //one of the dotted/shaded rectangles
+			PT_ConsolePutCharAt(console, 176, leftX + x, 1, color_cyan, 0x00000000); //one of the dotted/shaded rectangles
 			//note that pt_console.c allows layering characters!
-			PT_ConsolePutCharAt(console, 3, leftX + x, 1, 0x009900FF, 0x00000000);	//heart
+			PT_ConsolePutCharAt(console, 3, leftX + x, 1, color_cyan, 0x00000000);	//heart
 		} else {
-			PT_ConsolePutCharAt(console, 176, leftX + x, 1, 0xFF990099, 0x00000000);		
+			PT_ConsolePutCharAt(console, 176, leftX + x, 1, color_gray, 0x00000000);		
 		}
 	}
 
 	//draw player position
 	Position *playerPos = (Position *)getComponentForGameObject(player, COMP_POSITION);
 	char *msg = String_Create("X: %d Y: %d", playerPos->x, playerPos->y);
-	PT_ConsolePutStringAt(console, msg, 0, 3, 0x009900FF, 0x00000000);
+	PT_ConsolePutStringAt(console, msg, 0, 3, color_cyan, 0x00000000);
 	String_Destroy(msg);
 	//debug mouse pos
 	char *mouse = String_Create("Mouse X: %d Y: %d", mousePos.x/16, mousePos.y/16);
-	PT_ConsolePutStringAt(console, mouse, 0, 4, 0x009900FF, 0x00000000);
+	PT_ConsolePutStringAt(console, mouse, 0, 4, color_cyan, 0x00000000);
 	String_Destroy(mouse);
 
 }
@@ -194,7 +196,7 @@ internal void
 render_inventory_view(PT_Console *console) 
 {
 	PT_Rect rect = {0, 0, INVENTORY_WIDTH, INVENTORY_HEIGHT};
-	UI_DrawRect(console, &rect, 0x222222FF, 1, 0xFF990099);
+	UI_DrawRect(console, &rect, 0x222222FF, 1, color_cyan);
 
 	//Render list of carried items
 	i32 yIdx = 4;
@@ -212,9 +214,9 @@ render_inventory_view(PT_Console *console)
 			//draw highlight
 			if (lineIdx == highlightedIdx) {
 				selIdx = i;
-				PT_ConsolePutStringAt(console, itemText, 4, yIdx, 0xffffffff, 0x80000099);
+				PT_ConsolePutStringAt(console, itemText, 4, yIdx, color_white, 0x80000099);
 			} else {
-				PT_ConsolePutStringAt(console, itemText, 4, yIdx, 0x666666ff, 0x00000000);
+				PT_ConsolePutStringAt(console, itemText, 4, yIdx, color_gray, 0x00000000);
 			}
 			yIdx += 1;
 			lineIdx += 1;
@@ -226,9 +228,11 @@ render_inventory_view(PT_Console *console)
 
 	// Render additional information at bottom of view
 	char *instructions = String_Create("[Up/Down] to select item");
-	char *i2 = String_Create("[Spc] to (un)equip, [D] to drop");
-	PT_ConsolePutStringAt(console, instructions, 5, 25, 0x666666ff, 0x00000000);
-	PT_ConsolePutStringAt(console, i2, 5, 26, 0x666666ff, 0x00000000);
+	char *i2 = String_Create("[Spc or left click] to (un)equip");
+	char *i3 = String_Create("[D or right click] to drop");
+	PT_ConsolePutStringAt(console, instructions, 5, 25, color_gray, 0x00000000);
+	PT_ConsolePutStringAt(console, i2, 5, 26, color_gray, 0x00000000);
+	PT_ConsolePutStringAt(console, i3, 5, 27, color_gray, 0x00000000);
 
 }
 
