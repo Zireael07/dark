@@ -85,12 +85,11 @@ void debug_draw_Dijkstra(PT_Console *console){
 }
 
 internal void gameRender(PT_Console *console){
-	//PT_ConsolePutCharAt(console, '@', player.pos_x, player.pos_y, 0xFFFFFFFF, 0x000000FF);
 
 	draw_map(console);
 
 	for (u32 i = 1; i < MAX_GO; i++) {
-		if (renderableComps[i].objectId > 0 && !backpackComps[i].objectId > 0) {
+		if (renderableComps[i].objectId > 0 && !backpackComps[i].objectId > 0 && &gameObjects[i] != player) {
 			Position *p = (Position *)getComponentForGameObject(&gameObjects[i], COMP_POSITION);
 			if (fovMap[p->x][p->y] > 0) {
 				PT_ConsolePutCharAt(console, renderableComps[i].glyph, p->x, p->y, 
@@ -101,7 +100,12 @@ internal void gameRender(PT_Console *console){
 
 	//mouse highlight test
 	//should use console->cellWidth and console->cellHeight, but that blows up occasionally?
-	PT_ConsolePutCharAt(console, '#', mousePos.x/16, mousePos.y/16, 0x00000000, color_solarized_green); //solarized green bg
+	PT_ConsolePutCharAt(console, ' ', mousePos.x/16, mousePos.y/16, 0x00000099, color_solarized_green); //solarized green bg
+
+	//draw player on top
+	Position *p = (Position *)getComponentForGameObject(player, COMP_POSITION);
+	//inline ternary/if
+	PT_ConsolePutCharAt(console, '@', p->x, p->y, color_cyan, (mousePos.x/16 == p->x && mousePos.y/16 == p->y) ? color_solarized_green : 0x000000FF);
 
 	//debug Dijkstra map
 	//debug_draw_Dijkstra(console);
