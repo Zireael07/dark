@@ -72,6 +72,16 @@ void generate_map() {
 			}
 		}
   	}
+
+	//make some random pillars
+	u32 px = rand() % MAP_WIDTH;
+	u32 py = rand() % MAP_HEIGHT;
+
+	set_tile(px,py, tile_wall);
+
+	px = rand() % MAP_WIDTH;
+	py = rand() % MAP_HEIGHT;
+	set_tile(px,py, tile_wall);
 }
 
 bool is_wall(i32 x, i32 y) {
