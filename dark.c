@@ -167,6 +167,69 @@ void test_export() {
 }
 #endif
 
+void JSON_parse_npc(struct json_object_element_s* npc){
+	struct json_string_s* npc_name = npc->name;
+	printf("Parsing npc: %s\n", npc_name->string);
+	struct json_object_s* data = json_value_as_object(npc->value);
+	struct json_object_element_s* name = data->start;
+	struct json_string_s* inner_name = json_value_as_string(name->value);
+	printf("Inner: %s\n", inner_name->string);
+	struct json_object_element_s* renderable = name->next;
+	//struct json_string_s* render_name = renderable->name;
+	//printf("Name: %s\n", render_name->string);
+	struct json_object_s* render = json_value_as_object(renderable->value);
+	struct json_object_element_s* glyph = render->start;
+	struct json_string_s* glyph_value = json_value_as_string(glyph->value);
+	printf("Glyph: %s\n", glyph_value->string);
+	struct json_object_element_s* blocks = renderable->next;
+	struct json_string_s* blocks_value = json_value_is_true(blocks->value); // returns non-zero if true else 0
+	printf("Blocks: %d\n", blocks_value);
+	struct json_object_element_s* stats_block = blocks->next;
+	struct json_object_s* stats = json_value_as_object(stats_block->value);
+	struct json_object_element_s* hp = stats->start;
+	struct json_number_s* hp_value = json_value_as_number(hp->value);
+	printf("HP: %s\n", hp_value->number);
+	struct json_object_element_s* defense = hp->next;
+	struct json_number_s* def_val = json_value_as_number(defense->value);
+	printf("Def: %s\n", def_val->number);
+	struct json_object_element_s* pow = defense->next;
+	struct json_number_s* pow_val = json_value_as_number(pow->value);
+	printf("Pow: %s\n", pow_val->number);
+	//after stats, some entries are optional
+	struct json_object_element_s* next = stats_block->next;
+	if (strcmp(next->name->string, "faction") == 0) {
+		struct json_string_s* fact_val = json_value_as_string(next->value);
+		printf("Faction: %s\n", fact_val->string);
+	}
+	else {
+		struct json_object_element_s* eq = next;
+		struct json_array_s* equip_list = json_value_as_array(eq->value);
+		struct json_array_element_s* item = equip_list->start;
+		struct json_string_s* item_str = json_value_as_string(item->value);
+		printf("Item: %s\n", item_str->string);
+		while (item->next != NULL){
+			item = item->next;
+			item_str = json_value_as_string(item->value);
+			printf("Item: %s\n", item_str->string);
+		}
+	}
+	if (next->next != NULL){
+		if (strcmp(next->next->name->string, "equipment") == 0){
+			struct json_object_element_s* eq = next->next;
+			struct json_array_s* equip_list = json_value_as_array(eq->value);
+			struct json_array_element_s* item = equip_list->start;
+			struct json_string_s* item_str = json_value_as_string(item->value);
+			printf("Item: %s\n", item_str->string);
+			while (item->next != NULL){
+				item = item->next;
+				item_str = json_value_as_string(item->value);
+				printf("Item: %s\n", item_str->string);
+			}
+		}
+	}
+
+}
+
 
 void JSON_load(){
 	//open file (https://stackoverflow.com/questions/3747086/reading-the-whole-text-file-into-a-char-array-in-c)
@@ -197,109 +260,12 @@ void JSON_load(){
 
 	//get the first NPC and parse it
 	struct json_object_element_s* npc = object->start;
-	struct json_string_s* npc_name = npc->name;
-	printf("%s\n", npc_name->string);
-	struct json_object_s* data = json_value_as_object(npc->value);
-	struct json_object_element_s* name = data->start;
-	struct json_string_s* inner_name = json_value_as_string(name->value);
-	printf("Inner: %s\n", inner_name->string);
-	struct json_object_element_s* renderable = name->next;
-	//struct json_string_s* render_name = renderable->name;
-	//printf("Name: %s\n", render_name->string);
-	struct json_object_s* render = json_value_as_object(renderable->value);
-	struct json_object_element_s* glyph = render->start;
-	struct json_string_s* glyph_value = json_value_as_string(glyph->value);
-	printf("Glyph: %s\n", glyph_value->string);
-	struct json_object_element_s* blocks = renderable->next;
-	struct json_string_s* blocks_value = json_value_is_true(blocks->value); // returns non-zero if true else 0
-	printf("Blocks: %d\n", blocks_value);
-	struct json_object_element_s* stats_block = blocks->next;
-	struct json_object_s* stats = json_value_as_object(stats_block->value);
-	struct json_object_element_s* hp = stats->start;
-	struct json_number_s* hp_value = json_value_as_number(hp->value);
-	printf("HP: %s\n", hp_value->number);
-	struct json_object_element_s* defense = hp->next;
-	struct json_number_s* def_val = json_value_as_number(defense->value);
-	printf("Def: %s\n", def_val->number);
-	struct json_object_element_s* pow = defense->next;
-	struct json_number_s* pow_val = json_value_as_number(pow->value);
-	printf("Pow: %s\n", pow_val->number);
-	struct json_object_element_s* faction = stats_block->next;
-	struct json_string_s* fact_val = json_value_as_string(faction->value);
-	printf("Faction: %s\n", fact_val->string);
-	struct json_object_element_s* eq = faction->next;
-	struct json_array_s* equip_list = json_value_as_array(eq->value);
-	struct json_array_element_s* item = equip_list->start;
-	struct json_string_s* item_str = json_value_as_string(item->value);
-	printf("Item: %s\n", item_str->string);
-	while (item->next != NULL){
-		item = item->next;
-		item_str = json_value_as_string(item->value);
-		printf("Item: %s\n", item_str->string);
-	}
-
+	JSON_parse_npc(npc);
+	
 	//get all others
 	while (npc->next != NULL){
 		npc = npc->next;
-		npc_name = npc->name;
-		printf("%s\n", npc_name->string);
-		struct json_object_s* data = json_value_as_object(npc->value);
-		struct json_object_element_s* name = data->start;
-		struct json_string_s* inner_name = json_value_as_string(name->value);
-		printf("Inner: %s\n", inner_name->string);
-		struct json_object_element_s* renderable = name->next;
-		//struct json_string_s* render_name = renderable->name;
-		//printf("Name: %s\n", render_name->string);
-		struct json_object_s* render = json_value_as_object(renderable->value);
-		struct json_object_element_s* glyph = render->start;
-		struct json_string_s* glyph_value = json_value_as_string(glyph->value);
-		printf("Glyph: %s\n", glyph_value->string);
-		struct json_object_element_s* blocks = renderable->next;
-		struct json_string_s* blocks_value = json_value_is_true(blocks->value); // returns non-zero if true else 0
-		printf("Blocks: %d\n", blocks_value);
-		struct json_object_element_s* stats_block = blocks->next;
-		struct json_object_s* stats = json_value_as_object(stats_block->value);
-		struct json_object_element_s* hp = stats->start;
-		struct json_number_s* hp_value = json_value_as_number(hp->value);
-		printf("HP: %s\n", hp_value->number);
-		struct json_object_element_s* defense = hp->next;
-		struct json_number_s* def_val = json_value_as_number(defense->value);
-		printf("Def: %s\n", def_val->number);
-		struct json_object_element_s* pow = defense->next;
-		struct json_number_s* pow_val = json_value_as_number(pow->value);
-		printf("Pow: %s\n", pow_val->number);
-		//after stats, some entries are optional
-		struct json_object_element_s* next = stats_block->next;
-		if (strcmp(next->name->string, "faction") == 0) {
-			struct json_string_s* fact_val = json_value_as_string(next->value);
-			printf("Faction: %s\n", fact_val->string);
-		}
-		else {
-			struct json_object_element_s* eq = next;
-			struct json_array_s* equip_list = json_value_as_array(eq->value);
-			struct json_array_element_s* item = equip_list->start;
-			struct json_string_s* item_str = json_value_as_string(item->value);
-			printf("Item: %s\n", item_str->string);
-			while (item->next != NULL){
-				item = item->next;
-				item_str = json_value_as_string(item->value);
-				printf("Item: %s\n", item_str->string);
-			}
-		}
-		if (next->next != NULL){
-			if (strcmp(next->next->name->string, "equipment") == 0){
-				struct json_object_element_s* eq = next->next;
-				struct json_array_s* equip_list = json_value_as_array(eq->value);
-				struct json_array_element_s* item = equip_list->start;
-				struct json_string_s* item_str = json_value_as_string(item->value);
-				printf("Item: %s\n", item_str->string);
-				while (item->next != NULL){
-					item = item->next;
-					item_str = json_value_as_string(item->value);
-					printf("Item: %s\n", item_str->string);
-				}
-			}
-		}
+		JSON_parse_npc(npc);
 
 	}
 
