@@ -194,7 +194,7 @@ void PlayerMove(Position *playerPos, u8 dx, u8 dy) {
 			}
 		}
 
-		if (blockerObj != NULL) {
+		if (blockerObj != NULL && blockerObj != player) {
 			//printf("We have a blocker!\n");
 			combatAttack(player, blockerObj);
 			onPlayerMoved(player);
