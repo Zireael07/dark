@@ -45,7 +45,6 @@
         },
         "blocks_tile" : true,
         "stats" : {
-            "max_hp" : 16,
             "hp" : 16,
             "defense" : 1,
             "power" : 4
@@ -62,7 +61,6 @@
         },
         "blocks_tile" : true,
         "stats" : {
-            "max_hp" : 16,
             "hp" : 16,
             "defense" : 1,
             "power" : 4
@@ -80,7 +78,6 @@
         },
         "blocks_tile" : true,
         "stats" : {
-            "max_hp" : 16,
             "hp" : 16,
             "defense" : 1,
             "power" : 4
