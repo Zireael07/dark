@@ -291,7 +291,7 @@ void *getComponentForGameObject(GameObject *obj,
 }
 
 //helpers to avoid problems assigning our structs
-void add_NPC(u8 x, u8 y, asciiChar glyph, u32 fgColor, i32 maxHP, i32 attack, i32 defense) {
+void add_NPC(u8 x, u8 y, char *name, asciiChar glyph, u32 fgColor, i32 maxHP, i32 attack, i32 defense) {
 	GameObject *npc = createGameObject();
 	Position pos = {.objectId = npc->id, .x = x, .y = y};
 	printf("NPC: x: %d y: %d\n", x, y);
@@ -300,10 +300,10 @@ void add_NPC(u8 x, u8 y, asciiChar glyph, u32 fgColor, i32 maxHP, i32 attack, i3
 	addComponentToGameObject(npc, COMP_RENDERABLE, &rnd);
 	Physical phys = {.objectId = npc->id, .blocksMovement = true, .blocksSight = false};
 	addComponentToGameObject(npc, COMP_PHYSICAL, &phys);
-	Name name = {.objectId = npc->id};
-	name.name = "Thug"; // we can't initialize strings in C!
+	Name nam = {.objectId = npc->id};
+	nam.name = name; // we can't initialize strings in C!
 	//printf("%s", name.name);
-	addComponentToGameObject(npc, COMP_NAME, &name);
+	addComponentToGameObject(npc, COMP_NAME, &nam);
 	NPC npc_comp = {.objectId = npc->id};
 	addComponentToGameObject(npc, COMP_NPC, &npc_comp);
 	Health hlth = {.objectId = npc->id, .currentHP = maxHP, .maxHP = maxHP, .recoveryRate = 0};

@@ -264,6 +264,29 @@ void item_drop(GameObject *item) {
 	
 }
 
+void spawn_NPC(u8 x, u8 y, char *name){
+	printf("Spawning npc @ x %d y %d name %s\n", x, y, name);
+	JSON_data *npc_data = NULL;
+	//find npc in data with name
+	for (u32 i = 0; i < 200; i++) {
+		//if it exists...
+		if (loadedNPCs[i].name != NULL){
+			//printf("Entry %d exists\n", i);
+			if (strcmp(loadedNPCs[i].name, name) == 0) {
+				npc_data = &loadedNPCs[i];
+				break;
+			}
+		}
+	}
+
+	//npc_data = &loadedNPCs[0];
+
+	if (npc_data != NULL){
+		printf("Found NPC data for: %s\n", name);
+		add_NPC(x,y, name, (asciiChar)(npc_data->glyph[0]), 0xFFFFFFFF, (i32)(npc_data->hp), (i32)(npc_data->pow), (i32)(npc_data->def));
+	}
+}
+
 
 /* High-level game routines */
 internal void
@@ -289,9 +312,12 @@ game_new()
 	generate_map();
 	
 	Point pt = level_get_open_point();
-	add_NPC(pt.x, pt.y, 't', 0xFF0000FF, 8, 1, 1);
+	add_NPC(pt.x, pt.y, "Thug", 't', 0xFF0000FF, 8, 1, 1);
 	pt = level_get_open_point();
-	add_NPC(pt.x, pt.y, 't', 0xFF0000FF, 8, 1, 1);
+	add_NPC(pt.x, pt.y, "Thug", 't', 0xFF0000FF, 8, 1, 1);
+
+	pt = level_get_open_point();
+	spawn_NPC(pt.x, pt.y, "Cop");
 
 	pt = level_get_open_point();
 	add_item(pt.x, pt.y, "combat knife", '/', 0xFFFF00FF, "hand", 2);
