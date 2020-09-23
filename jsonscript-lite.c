@@ -1,5 +1,9 @@
 /*
- jsonscript.c 
+ jsonscript-lite.c
+
+ Work with a single S-expression (JSON array). Can call a C function. 
+ Intended for debug purposes such as in-game debugging/console.
+
 */
 
 /* Function definitions (because functions have to be defined before use in C) */
@@ -28,7 +32,7 @@ char * JLisp_read() {
 	long lSize;
 	char *buffer;
 
-	fp = fopen ( "assets/scripts/test.json" , "rb" );
+	fp = fopen ( "assets/scripts/math.json" , "rb" );
 	if( !fp ) { printf("Could not open JSON source"); }
 
 	fseek( fp , 0L , SEEK_END);
