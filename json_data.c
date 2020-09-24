@@ -31,7 +31,7 @@ void JSON_parse_npc(struct json_object_element_s* npc){
 	struct json_object_s* data = json_value_as_object(npc->value);
 	struct json_object_element_s* name = data->start;
 	struct json_string_s* inner_name = json_value_as_string(name->value);
-	printf("Inner: %s\n", inner_name->string);
+	//printf("Inner: %s\n", inner_name->string);
 	npc_data->name = inner_name->string;
 
 	struct json_object_element_s* renderable = name->next;
@@ -40,25 +40,25 @@ void JSON_parse_npc(struct json_object_element_s* npc){
 	struct json_object_s* render = json_value_as_object(renderable->value);
 	struct json_object_element_s* glyph = render->start;
 	struct json_string_s* glyph_value = json_value_as_string(glyph->value);
-	printf("Glyph: %s\n", glyph_value->string);
+	//printf("Glyph: %s\n", glyph_value->string);
 	npc_data->glyph = glyph_value->string;
 	struct json_object_element_s* blocks = renderable->next;
 	struct json_string_s* blocks_value = json_value_is_true(blocks->value); // returns non-zero if true else 0
-	printf("Blocks: %d\n", blocks_value);
+	//printf("Blocks: %d\n", blocks_value);
 	npc_data->blocks = (blocks_value != 0 ? true : false);
 	struct json_object_element_s* stats_block = blocks->next;
 	struct json_object_s* stats = json_value_as_object(stats_block->value);
 	struct json_object_element_s* hp = stats->start;
 	struct json_number_s* hp_value = json_value_as_number(hp->value);
-	printf("HP: %s\n", hp_value->number);
+	//printf("HP: %s\n", hp_value->number);
 	npc_data->hp = atoi(hp_value->number);
 	struct json_object_element_s* defense = hp->next;
 	struct json_number_s* def_val = json_value_as_number(defense->value);
-	printf("Def: %s\n", def_val->number);
+	//printf("Def: %s\n", def_val->number);
 	npc_data->def = atoi(def_val->number);
 	struct json_object_element_s* pow = defense->next;
 	struct json_number_s* pow_val = json_value_as_number(pow->value);
-	printf("Pow: %s\n", pow_val->number);
+	//printf("Pow: %s\n", pow_val->number);
 	npc_data->pow = atoi(pow_val->number);
 	//debug
 	printf("NPC data: name %s glyph %s hp %d def %d pow %d\n", npc_data->name, npc_data->glyph, npc_data->hp, npc_data->def, npc_data->pow);
