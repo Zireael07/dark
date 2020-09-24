@@ -32,7 +32,7 @@ char * JLisp_read() {
 	long lSize;
 	char *buffer;
 
-	fp = fopen ( "assets/scripts/math.json" , "rb" );
+	fp = fopen ( "assets/scripts/test.json" , "rb" );
 	if( !fp ) { printf("Could not open JSON source"); }
 
 	fseek( fp , 0L , SEEK_END);
@@ -117,11 +117,20 @@ int Divide(struct json_value_s* a, struct json_value_s* b) {
 	int b_int = atoi(leaf_num->number);
 	return a_int / b_int; 
 }
-int String_Test(struct json_value_s a) {
-	struct json_string_s* leaf_str = json_value_as_string(&a);
+int String_Test(struct json_value_s* a) {
+	struct json_string_s* leaf_str = json_value_as_string(a);
 	char *str = leaf_str->string;
 	printf("Test %s", str);
-	free(str);
+	//free(str);
+	return 0; //default
+}
+int Spawn(struct json_value_s* a) {
+	struct json_string_s* leaf_str = json_value_as_string(a);
+	char *str = leaf_str->string;
+	//printf("Test %s", str);
+	Point pt = level_get_open_point();
+	printf("Trying to spawn %s at x %d y %d ", str, pt.x, pt.y);
+	spawn_NPC(pt.x, pt.y, str);
 	return 0; //default
 }
 
@@ -135,7 +144,7 @@ typedef struct
 } command_info;
 //lookup table aka dispatch table aka environment
 command_info command_table[] = {{"+", 3, &Add}, {"-", 2, &Subtract}, {"*", 2, &Multiply}, {"/", 2, &Divide}, 
-{"test", 1, &String_Test} };
+{"test", 1, &String_Test}, {"spawn", 1, &Spawn} };
 
 
 
@@ -176,7 +185,7 @@ int JLisp_eval(struct json_value_s* value){
 
 		//TODO: get rid of that outer loop by making command_table a hashmap
 		int i;
-		for(i = 0; i < 4; i++) {
+		for(i = 0; i < 6; i++) {
 			if (strcmp(str, command_table[i].name) == 0) {
 				//check number of parameters
 				if (command_table[i].num_args == cnt) {
@@ -185,6 +194,9 @@ int JLisp_eval(struct json_value_s* value){
 					//call it
 					switch (cnt)
 					{
+						case 1: {
+							res = command_table[i].func(args[0]);
+						}
 						case 2: {
 							res = command_table[i].func(args[0], args[1]);
 							break;
