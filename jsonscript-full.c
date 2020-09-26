@@ -123,7 +123,115 @@ void script_val_print(script_val* v) {
 
 void script_val_println(script_val* v) { script_val_print(v); putchar('\n'); }
 
+/* Remove item at i and shift everything else backwards */
+script_val* script_val_pop(script_val* v, int i) {
+  /* Find the item at "i" */
+  script_val* x = v->cell[i];
 
+  /* Shift memory after the item at "i" over the top */
+  memmove(&v->cell[i], &v->cell[i+1],
+    sizeof(script_val*) * (v->count-i-1));
+
+  /* Decrease the count of items in the list */
+  v->count--;
+
+  /* Reallocate the memory used */
+  v->cell = realloc(v->cell, sizeof(script_val*) * v->count);
+  return x;
+}
+
+script_val* script_val_take(script_val* v, int i) {
+  script_val* x = script_val_pop(v, i);
+  script_val_del(v);
+  return x;
+}
+
+/* Built-ins */
+script_val* builtin_op(script_val* a, char* op) {
+
+  /* Ensure all arguments are numbers */
+  for (int i = 0; i < a->count; i++) {
+    if (a->cell[i]->type != SVAL_NUM) {
+      script_val_del(a);
+      return script_val_err("Cannot operate on non-number!");
+    }
+  }
+
+  /* Pop the first element */
+  script_val* x = script_val_pop(a, 0);
+
+  /* If no arguments and sub then perform unary negation */
+  if ((strcmp(op, "-") == 0) && a->count == 0) {
+    x->num = -x->num;
+  }
+
+  /* While there are still elements remaining */
+  while (a->count > 0) {
+
+    /* Pop the next element */
+    script_val* y = script_val_pop(a, 0);
+
+    if (strcmp(op, "+") == 0) { x->num += y->num; }
+    if (strcmp(op, "-") == 0) { x->num -= y->num; }
+    if (strcmp(op, "*") == 0) { x->num *= y->num; }
+    if (strcmp(op, "/") == 0) {
+      if (y->num == 0) {
+        script_val_del(x); script_val_del(y);
+        x = script_val_err("Division By Zero!"); break;
+      }
+      x->num /= y->num;
+    }
+
+    script_val_del(y);
+  }
+
+  script_val_del(a); 
+  return x;
+}
+
+
+/* Evaluation */
+/* forward declare */
+script_val* script_val_eval(script_val* v);
+
+script_val* script_val_eval_sexpr(script_val* v) {
+
+  /* Evaluate Children */
+  for (int i = 0; i < v->count; i++) {
+    v->cell[i] = script_val_eval(v->cell[i]);
+  }
+
+  /* Error Checking */
+  for (int i = 0; i < v->count; i++) {
+    if (v->cell[i]->type == SVAL_ERR) { return script_val_take(v, i); }
+  }
+
+  /* Empty Expression */
+  if (v->count == 0) { return v; }
+
+  /* Single Expression */
+  if (v->count == 1) { return script_val_take(v, 0); }
+
+  /* Ensure First Element is Symbol */
+  script_val* f = script_val_pop(v, 0);
+  if (f->type != SVAL_SYM) {
+    script_val_del(f); script_val_del(v);
+    return script_val_err("S-expression Does not start with symbol!");
+  }
+
+  /* Call builtin with operator */
+  script_val* result = builtin_op(v, f->sym);
+  script_val_del(f);
+  return result;
+}
+
+
+script_val* script_val_eval(script_val* v) {
+  /* Evaluate Sexpressions */
+  if (v->type == SVAL_SEXPR) { return script_val_eval_sexpr(v); }
+  /* All other script val types remain the same */
+  return v;
+}
 
 /* Hand rolled parser - http://www.buildyourownlisp.com/appendix_a_hand_rolled_parser */
 
@@ -221,12 +329,6 @@ script_val* script_val_read(char* s, int* i) {
     x = script_val_read_expr(s, i, ')');
   }
   
-  /* If next character is { then read Q-Expr */
-//   else if (s[*i] == '{') {
-//     (*i)++;
-//     x = lval_read_expr(s, i, '}');
-//   }
-  
   /* If next character is part of a symbol then read symbol */
   else if (strchr(
     "abcdefghijklmnopqrstuvwxyz"
@@ -262,9 +364,10 @@ void parse_script() {
   /* Read from input to create an S-Expr */
   int pos = 0;
   script_val* expr = script_val_read_expr(input, &pos, '\0');
-  //TODO: eval
-  script_val_println(expr);
-  script_val_del(expr);
+  /* Evaluate and print input */
+  script_val* x = script_val_eval(expr);
+  script_val_println(x);
+  script_val_del(x);
 
   //free(input);
 }
