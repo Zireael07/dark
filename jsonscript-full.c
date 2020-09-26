@@ -245,7 +245,7 @@ int is_valid_identifier(char s) {
 }
 
 int is_whitespace(char s){
-  return strchr(" \t\v\r\n;", s) && s != '\0';
+  return strchr(" \t\v\r\n;,", s) && s != '\0';
 }
 
 script_val* script_val_read_sym(char* s, int* i) {
@@ -331,12 +331,17 @@ script_val* script_val_read(char* s, int* i) {
     return script_val_err("Unexpected end of input");
   }
   
-  /* If next character is ( then read S-Expr */
+  /* If next character is ( or [ then read S-Expr */
   else if (s[*i] == '(') {
     (*i)++;
     x = script_val_read_expr(s, i, ')');
   }
-  
+  /* brackets must match, whichever kind we pick */
+  else if (s[*i] == '[') {
+    (*i)++;
+    x = script_val_read_expr(s, i, ']');
+  }
+
   /* If next character is part of a symbol then read symbol */
   else if (is_valid_identifier(s[*i])) {
     x = script_val_read_sym(s, i);
@@ -365,7 +370,7 @@ script_val* script_val_read(char* s, int* i) {
 }
 
 void parse_script() {
-  char* input = "( + 2 (* 3 4) )";
+  char* input = "[ + 2 [* 3, 4] ]";
   /* Read from input to create an S-Expr */
   int pos = 0;
   script_val* expr = script_val_read_expr(input, &pos, '\0');
