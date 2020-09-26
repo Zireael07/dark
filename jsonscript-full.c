@@ -237,16 +237,24 @@ script_val* script_val_eval(script_val* v) {
 
 /* Reading */
 
+int is_valid_identifier(char s) {
+  return strchr(
+      "abcdefghijklmnopqrstuvwxyz"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "0123456789_+-*\\/=<>!&", s) && s != '\0';
+}
+
+int is_whitespace(char s){
+  return strchr(" \t\v\r\n;", s) && s != '\0';
+}
+
 script_val* script_val_read_sym(char* s, int* i) {
   
   /* Allocate Empty String */
   char* part = calloc(1,1);
   
   /* While valid identifier characters */
-  while (strchr(
-      "abcdefghijklmnopqrstuvwxyz"
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "0123456789_+-*\\/=<>!&", s[*i]) && s[*i] != '\0') {
+  while (is_valid_identifier(s[*i])) {
     
     /* Append character to end of string */
     part = realloc(part, strlen(part)+2);
@@ -309,7 +317,7 @@ script_val* script_val_read_expr(char* s, int* i, char end) {
 script_val* script_val_read(char* s, int* i) {
   
   /* Skip all trailing whitespace and comments */
-  while (strchr(" \t\v\r\n;", s[*i]) && s[*i] != '\0') {
+  while (is_whitespace(s[*i])) {
     if (s[*i] == ';') {
       while (s[*i] != '\n' && s[*i] != '\0') { (*i)++; }
     }
@@ -330,10 +338,7 @@ script_val* script_val_read(char* s, int* i) {
   }
   
   /* If next character is part of a symbol then read symbol */
-  else if (strchr(
-    "abcdefghijklmnopqrstuvwxyz"
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "0123456789_+-*\\/=<>!&", s[*i])) {
+  else if (is_valid_identifier(s[*i])) {
     x = script_val_read_sym(s, i);
   }
   
@@ -348,7 +353,7 @@ script_val* script_val_read(char* s, int* i) {
   }
   
   /* Skip all trailing whitespace and comments */
-  while (strchr(" \t\v\r\n;", s[*i]) && s[*i] != '\0') {
+  while (is_whitespace(s[*i])) {
     if (s[*i] == ';') {
       while (s[*i] != '\n' && s[*i] != '\0') { (*i)++; }
     }
