@@ -248,11 +248,17 @@ int is_whitespace(char s){
   return strchr(" \t\v\r\n;,", s) && s != '\0';
 }
 
-script_val* script_val_read_sym(char* s, int* i) {
+script_val* script_val_read_sym(char* s, int* i, bool stringified) {
   
   /* Allocate Empty String */
   char* part = calloc(1,1);
   
+  if (stringified){
+    /* More forward one step past initial " character */
+    (*i)++;
+  }
+
+
   /* While valid identifier characters */
   while (is_valid_identifier(s[*i])) {
     
@@ -279,11 +285,16 @@ script_val* script_val_read_sym(char* s, int* i) {
   } else {
     x = script_val_sym(part);
   }
+
+  if (stringified){
+    /* More forward one step past initial " character */
+    (*i)++;
+  }
   
   /* Free temp string */
   free(part);
   
-  /* Return lval */
+  /* Return val */
   return x;
 }
 
@@ -342,9 +353,15 @@ script_val* script_val_read(char* s, int* i) {
     x = script_val_read_expr(s, i, ']');
   }
 
-  /* If next character is part of a symbol then read symbol */
+  /* If next character is a valid identifier, read symbol */
   else if (is_valid_identifier(s[*i])) {
-    x = script_val_read_sym(s, i);
+    x = script_val_read_sym(s,i, false);
+  }
+
+  /* If next character is " then read symbol */
+  else if (strchr("\"", s[*i])) {
+  //else if (is_valid_identifier(s[*i])) {
+    x = script_val_read_sym(s, i, true);
   }
   
   /* If next character is " then read string */
@@ -370,7 +387,26 @@ script_val* script_val_read(char* s, int* i) {
 }
 
 void parse_script() {
-  char* input = "[ + 2 [* 3, 4] ]";
+  //char* input = "[ + 2 [* 3, 4] ]";
+  FILE *fp;
+	long lSize;
+	char *input;
+
+	fp = fopen ( "assets/scripts/math.json" , "rb" );
+	if( !fp ) { printf("Could not open JSON source"); }
+
+	fseek( fp , 0L , SEEK_END);
+	lSize = ftell( fp );
+	rewind( fp );
+
+	/* allocate memory for entire content */
+	input = calloc( 1, lSize+1 );
+	if( !input ) fclose(fp),printf("memory alloc fails");
+
+	/* copy the file into the buffer */
+	if( 1!=fread( input , lSize, 1 , fp) )
+	fclose(fp),free(input),printf("entire read fails");
+  
   /* Read from input to create an S-Expr */
   int pos = 0;
   script_val* expr = script_val_read_expr(input, &pos, '\0');
