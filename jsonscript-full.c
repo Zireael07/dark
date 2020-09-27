@@ -6,8 +6,17 @@
 
 #include <errno.h>
 
+/* Forward Declarations */
+
+struct script_val;
+struct script_env;
+typedef struct script_val script_val;
+typedef struct script_env script_env;
+
 /* Create Enumeration of possible value Types */
-enum { SVAL_ERR, SVAL_NUM, SVAL_SYM, SVAL_SEXPR };
+enum { SVAL_ERR, SVAL_NUM, SVAL_SYM, SVAL_FUN, SVAL_SEXPR };
+
+typedef script_val*(*lbuiltin)(script_env*, script_val*);
 
 typedef struct script_val {
   int type; /* See enum above */
@@ -17,6 +26,7 @@ typedef struct script_val {
   /* Error and Symbol types have some string data */
   char* err;
   char* sym;
+  lbuiltin fun;
   /* Count and Pointer to a list of "script val*" 
   ( for S-expressions)
   */
@@ -67,11 +77,19 @@ script_val* script_val_sexpr(void) {
   return v;
 }
 
+script_val* script_val_fun(lbuiltin func) {
+  script_val* v = malloc(sizeof(script_val));
+  v->type = SVAL_FUN;
+  v->fun = func;
+  return v;
+}
+
 //Cleanup our stuff
 void script_val_del(script_val* v) {
 
   switch (v->type) {
     case SVAL_NUM: break;
+    case SVAL_FUN: break;
     /* For Err or Sym free the string data */
     case SVAL_ERR: free(v->err); break;
     case SVAL_SYM: free(v->sym); break;
@@ -118,10 +136,113 @@ void script_val_print(script_val* v) {
     case SVAL_ERR:   printf("Error: %s", v->err); break;
     case SVAL_SYM:   printf("%s", v->sym); break;
     case SVAL_SEXPR: script_val_print_expr(v, '[', ']'); break;
+    case SVAL_FUN:   printf("<function>"); break;
   }
 }
 
 void script_val_println(script_val* v) { script_val_print(v); putchar('\n'); }
+
+/* Necessary for the environment */
+script_val* script_val_copy(script_val* v) {
+
+  script_val* x = malloc(sizeof(script_val));
+  x->type = v->type;
+
+  switch (v->type) {
+
+    /* Copy Functions and Numbers Directly */
+    case SVAL_FUN: x->fun = v->fun; break;
+    case SVAL_NUM: x->num = v->num; break;
+
+    /* Copy Strings using malloc and strcpy */
+    case SVAL_ERR:
+      x->err = malloc(strlen(v->err) + 1);
+      strcpy(x->err, v->err); break;
+
+    case SVAL_SYM:
+      x->sym = malloc(strlen(v->sym) + 1);
+      strcpy(x->sym, v->sym); break;
+
+    /* Copy Lists by copying each sub-expression */
+    case SVAL_SEXPR:
+      x->count = v->count;
+      x->cell = malloc(sizeof(script_val*) * x->count);
+      for (int i = 0; i < x->count; i++) {
+        x->cell[i] = script_val_copy(v->cell[i]);
+      }
+    break;
+  }
+
+  return x;
+}
+
+/* Environment */
+struct script_env {
+  int count;
+  char** syms;
+  script_val** vals;
+};
+
+script_env* script_env_new(void) {
+  script_env* e = malloc(sizeof(script_env));
+  e->count = 0;
+  e->syms = NULL;
+  e->vals = NULL;
+  return e;
+}
+
+void script_env_del(script_env* e) {
+  for (int i = 0; i < e->count; i++) {
+    free(e->syms[i]);
+    script_val_del(e->vals[i]);
+  }
+  free(e->syms);
+  free(e->vals);
+  free(e);
+}
+
+script_val* script_env_get(script_env* e, script_val* k) {
+
+  /* Iterate over all items in environment */
+  for (int i = 0; i < e->count; i++) {
+    //debug
+    //printf("symbol: %s in env: %s\n", k->sym, e->syms[i]);
+    /* Check if the stored string matches the symbol string */
+    /* If it does, return a copy of the value */
+    if (strcmp(e->syms[i], k->sym) == 0) {
+      return script_val_copy(e->vals[i]);
+    }
+  }
+  /* If no symbol found return error */
+  return script_val_err("unbound symbol %s!", k->sym);
+}
+
+void script_env_put(script_env* e, script_val* k, script_val* v) {
+
+  /* Iterate over all items in environment */
+  /* This is to see if variable already exists */
+  for (int i = 0; i < e->count; i++) {
+
+    /* If variable is found delete item at that position */
+    /* And replace with variable supplied by user */
+    if (strcmp(e->syms[i], k->sym) == 0) {
+      script_val_del(e->vals[i]);
+      e->vals[i] = script_val_copy(v);
+      return;
+    }
+  }
+
+  /* If no existing entry found allocate space for new entry */
+  e->count++;
+  e->vals = realloc(e->vals, sizeof(script_val*) * e->count);
+  e->syms = realloc(e->syms, sizeof(char*) * e->count);
+
+  /* Copy contents of lval and symbol string into new location */
+  e->vals[e->count-1] = script_val_copy(v);
+  e->syms[e->count-1] = malloc(strlen(k->sym)+1);
+  strcpy(e->syms[e->count-1], k->sym);
+}
+
 
 /* Remove item at i and shift everything else backwards */
 script_val* script_val_pop(script_val* v, int i) {
@@ -147,7 +268,7 @@ script_val* script_val_take(script_val* v, int i) {
 }
 
 /* Built-ins */
-script_val* builtin_op(script_val* a, char* op) {
+script_val* builtin_op(script_env* e, script_val* a, char* op) {
 
   /* Ensure all arguments are numbers */
   for (int i = 0; i < a->count; i++) {
@@ -190,15 +311,40 @@ script_val* builtin_op(script_val* a, char* op) {
 }
 
 
-/* Evaluation */
-/* forward declare */
-script_val* script_val_eval(script_val* v);
+script_val* builtin_add(script_env* e, script_val* a) { return builtin_op(e, a, "+"); }
+script_val* builtin_sub(script_env* e, script_val* a) { return builtin_op(e, a, "-"); }
+script_val* builtin_mul(script_env* e, script_val* a) { return builtin_op(e, a, "*"); }
+script_val* builtin_div(script_env* e, script_val* a) { return builtin_op(e, a, "/"); }
 
-script_val* script_val_eval_sexpr(script_val* v) {
+/* forward declare */
+script_val* script_val_eval(script_env* e, script_val* v);
+
+
+void script_env_add_builtin(script_env* e, char* name, lbuiltin func) {
+  script_val* k = script_val_sym(name);
+  script_val* v = script_val_fun(func);
+  script_env_put(e, k, v);
+  script_val_del(k); script_val_del(v);
+}
+
+//Needs to come AFTER all function definitions
+void script_env_add_builtins(script_env* e) {
+  /* Mathematical Functions */
+  script_env_add_builtin(e, "+", builtin_add);
+  script_env_add_builtin(e, "-", builtin_sub);
+  script_env_add_builtin(e, "*", builtin_mul);
+  script_env_add_builtin(e, "/", builtin_div);
+
+}
+
+
+
+/* Evaluation */
+script_val* script_val_eval_sexpr(script_env* e, script_val* v) {
 
   /* Evaluate Children */
   for (int i = 0; i < v->count; i++) {
-    v->cell[i] = script_val_eval(v->cell[i]);
+    v->cell[i] = script_val_eval(e, v->cell[i]);
   }
 
   /* Error Checking */
@@ -212,23 +358,29 @@ script_val* script_val_eval_sexpr(script_val* v) {
   /* Single Expression */
   if (v->count == 1) { return script_val_take(v, 0); }
 
-  /* Ensure First Element is Symbol */
+  /* Ensure first element is a function after evaluation */
   script_val* f = script_val_pop(v, 0);
-  if (f->type != SVAL_SYM) {
-    script_val_del(f); script_val_del(v);
-    return script_val_err("S-expression Does not start with symbol!");
+  if (f->type != SVAL_FUN) {
+    script_val_del(v); script_val_del(f);
+    return script_val_err("first element is not a function");
   }
 
-  /* Call builtin with operator */
-  script_val* result = builtin_op(v, f->sym);
+  /* If so call function to get result */
+  script_val* result = f->fun(e, v);
   script_val_del(f);
   return result;
 }
 
 
-script_val* script_val_eval(script_val* v) {
+script_val* script_val_eval(script_env* e, script_val* v) {
+  /* Gets symbols from environment */
+  if (v->type == SVAL_SYM) {
+    script_val* x = script_env_get(e, v);
+    script_val_del(v);
+    return x;
+  }
   /* Evaluate Sexpressions */
-  if (v->type == SVAL_SEXPR) { return script_val_eval_sexpr(v); }
+  if (v->type == SVAL_SEXPR) { return script_val_eval_sexpr(e, v); }
   /* All other script val types remain the same */
   return v;
 }
@@ -407,14 +559,20 @@ void parse_script() {
 	if( 1!=fread( input , lSize, 1 , fp) )
 	fclose(fp),free(input),printf("entire read fails");
   
+  /* Scripting engine starts here */
+  script_env* e = script_env_new();
+  script_env_add_builtins(e);
+
   /* Read from input to create an S-Expr */
   int pos = 0;
   script_val* expr = script_val_read_expr(input, &pos, '\0');
+  //script_val_println(expr); //debug
   /* Evaluate and print input */
-  script_val* x = script_val_eval(expr);
+  script_val* x = script_val_eval(e, expr);
   script_val_println(x);
   script_val_del(x);
 
   //free(input);
+  script_env_del(e);
 }
 
