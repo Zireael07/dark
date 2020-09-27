@@ -319,6 +319,28 @@ script_val* builtin_div(script_env* e, script_val* a) { return builtin_op(e, a, 
 /* forward declare */
 script_val* script_val_eval(script_env* e, script_val* v);
 
+script_val* builtin_if(script_env* e, script_val* a) {
+  /* Mark Both Expressions as evaluable */
+  script_val* x;
+  //FIXME: for some reason, this caused a crash
+  //a->cell[1]->type = SVAL_SEXPR;
+  //a->cell[2]->type = SVAL_SEXPR;
+
+  if (a->cell[0]->num) {
+    printf("Condition is true\n");
+    /* If condition is true (=1) evaluate first expression */
+    x = script_val_eval(e, script_val_pop(a, 1));
+  } else {
+    printf("Condition is false\n");
+    /* Otherwise (0) evaluate second expression */
+    x = script_val_eval(e, script_val_pop(a, 2));
+  }
+
+  /* Delete argument list and return */
+  script_val_del(a);
+  return x;
+}
+  
 
 void script_env_add_builtin(script_env* e, char* name, lbuiltin func) {
   script_val* k = script_val_sym(name);
@@ -334,7 +356,8 @@ void script_env_add_builtins(script_env* e) {
   script_env_add_builtin(e, "-", builtin_sub);
   script_env_add_builtin(e, "*", builtin_mul);
   script_env_add_builtin(e, "/", builtin_div);
-
+  /* Comparison Functions */
+  script_env_add_builtin(e, "if", builtin_if);
 }
 
 
@@ -544,7 +567,7 @@ void parse_script() {
 	long lSize;
 	char *input;
 
-	fp = fopen ( "assets/scripts/math.json" , "rb" );
+	fp = fopen ( "assets/scripts/if.json" , "rb" );
 	if( !fp ) { printf("Could not open JSON source"); }
 
 	fseek( fp , 0L , SEEK_END);
