@@ -13,3 +13,8 @@ Some people are frightened of C because it uses pointers and forces you to think
 While using a library such as libTCOD would certainly make some aspects of our game development easier, we end up trading control and understanding for ease of use. If we build all aspects of the game ourselves from scratch, we gain true understanding of how everything fits together, and that's the real point of this exercise.
 
 Once you understand the underlying algorithms, they become less intimidating, and you'll hopefully gain the confidence to tweak the existing algorithms or create new ones to achieve unique effects in your own game.
+
+## References used
+* original Dark Caverns - https://github.com/PeteyCodes/DarkCaverns
+* A Day @ the Zoo (aka Happyponyland)
+* Build Your Own Lisp
