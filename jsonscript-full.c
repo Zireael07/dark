@@ -444,6 +444,34 @@ script_val* script_val_read_sym(char* s, int* i, bool stringified) {
     (*i)++;
   }
   
+  /* For JSON compat - check for specials: true, false and null */
+  if (!stringified) {
+    /* Convert to numbers for internal use */
+    if (strcmp(part, "true") == 0) {
+      printf("identifier is true\n");
+      //strings are nasty to work with in C 
+      //strlen() does NOT include the null termination
+			//character, so always malloc() the reported length + 1!!
+			part = calloc(2, sizeof(char));
+			strcpy(part, "1\0");
+    }
+    if (strcmp(part, "false") == 0) {
+      printf("Identifier is false\n");
+      //strlen() does NOT include the null termination
+			//character, so always malloc() the reported length + 1!!
+			part = calloc(2, sizeof(char));
+			strcpy(part, "0\0");
+    }
+    if (strcmp(part, "null") == 0) {
+      printf("Identifier is null\n");
+      //strlen() does NOT include the null termination
+			//character, so always malloc() the reported length + 1!!
+			part = calloc(2, sizeof(char));
+			strcpy(part, "0\0");
+    }
+  }
+
+
   /* Check if Identifier looks like a number */
   int is_num = strchr("-0123456789", part[0]) != NULL;
   for (int j = 1; j < strlen(part); j++) {
@@ -522,7 +550,7 @@ script_val* script_val_read(char* s, int* i) {
     (*i)++;
     x = script_val_read_expr(s, i, ')');
   }
-  /* brackets must match, whichever kind we pick */
+  /* For JSON compat; brackets must match, whichever kind we pick */
   else if (s[*i] == '[') {
     (*i)++;
     x = script_val_read_expr(s, i, ']');
@@ -533,7 +561,7 @@ script_val* script_val_read(char* s, int* i) {
     x = script_val_read_sym(s,i, false);
   }
 
-  /* If next character is " then read symbol */
+  /* For JSON compat - if next character is " then read symbol */
   else if (strchr("\"", s[*i])) {
   //else if (is_valid_identifier(s[*i])) {
     x = script_val_read_sym(s, i, true);
