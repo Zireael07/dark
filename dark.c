@@ -225,6 +225,11 @@ int main() {
 
 	game_new();
 
+	//welcome message
+	char *msg = String_Create("Welcome to Dark Twilight!");
+	add_message(msg, color_brown);
+	String_Destroy(msg);
+
 	#ifndef __EMSCRIPTEN__
 		//load game if any
 		game_load();
