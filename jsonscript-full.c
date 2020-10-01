@@ -14,7 +14,7 @@ typedef struct script_val script_val;
 typedef struct script_env script_env;
 
 /* Create Enumeration of possible value Types */
-enum { SVAL_ERR, SVAL_NUM, SVAL_SYM, SVAL_FUN, SVAL_SEXPR };
+enum { SVAL_ERR, SVAL_NUM, SVAL_SYM, SVAL_STR, SVAL_FUN, SVAL_SEXPR };
 
 typedef script_val*(*lbuiltin)(script_env*, script_val*);
 
@@ -26,6 +26,7 @@ typedef struct script_val {
   /* Error and Symbol types have some string data */
   char* err;
   char* sym;
+  char* str;
   lbuiltin fun;
   /* Count and Pointer to a list of "script val*" 
   ( for S-expressions)
@@ -67,6 +68,15 @@ script_val* script_val_sym(char* s) {
   return v;
 }
 
+script_val* script_val_str(char* s) {
+  script_val* v = malloc(sizeof(script_val));
+  v->type = SVAL_STR;
+  //because strings are 0-terminated!
+  v->str = malloc(strlen(s) + 1);
+  strcpy(v->str, s);
+  return v;
+}
+
 /* S-Expressions represented as a variable sized array for simplicity */
 /* A pointer to a new empty Sexpr script val */
 script_val* script_val_sexpr(void) {
@@ -93,6 +103,7 @@ void script_val_del(script_val* v) {
     /* For Err or Sym free the string data */
     case SVAL_ERR: free(v->err); break;
     case SVAL_SYM: free(v->sym); break;
+    case SVAL_STR: free(v->str); break;
     /* If Sexpr then delete all elements inside */
     case SVAL_SEXPR:
       for (int i = 0; i < v->count; i++) {
@@ -114,6 +125,50 @@ script_val* script_val_add(script_val* v, script_val* x) {
   return v;
 }
 
+
+/* String escaping */
+/* Possible unescapable characters */
+char* script_val_str_unescapable = "abfnrtv\\\'\"";
+
+/* Function to unescape characters */
+char script_val_str_unescape(char x) {
+  switch (x) {
+    case 'a':  return '\a';
+    case 'b':  return '\b';
+    case 'f':  return '\f';
+    case 'n':  return '\n';
+    case 'r':  return '\r';
+    case 't':  return '\t';
+    case 'v':  return '\v';
+    case '\\': return '\\';
+    case '\'': return '\'';
+    case '\"': return '\"';
+  }
+  return '\0';
+}
+
+/* List of possible escapable characters */
+char* script_val_str_escapable = "\a\b\f\n\r\t\v\\\'\"";
+
+/* Function to escape characters */
+char* script_val_str_escape(char x) {
+  switch (x) {
+    case '\a': return "\\a";
+    case '\b': return "\\b";
+    case '\f': return "\\f";
+    case '\n': return "\\n";
+    case '\r': return "\\r";
+    case '\t': return "\\t";
+    case '\v': return "\\v";
+    case '\\': return "\\\\";
+    case '\'': return "\\\'";
+    case '\"': return "\\\"";
+  }
+  return "";
+} 
+
+
+
 /* Print values */
 void script_val_print(script_val* v);
 
@@ -130,11 +185,27 @@ void script_val_print_expr(script_val* v, char open, char close) {
   putchar(close);
 }
 
+void script_val_print_str(script_val* v) {
+  putchar('"');
+  /* Loop over the characters in the string */
+  for (int i = 0; i < strlen(v->str); i++) {
+    if (strchr(script_val_str_escapable, v->str[i])) {
+      /* If the character is escapable then escape it */
+      printf("%s", script_val_str_escape(v->str[i]));
+    } else {
+      /* Otherwise print character as it is */
+      putchar(v->str[i]);
+    }
+  }
+  putchar('"');
+}
+
 void script_val_print(script_val* v) {
   switch (v->type) {
     case SVAL_NUM:   printf("%li", v->num); break;
     case SVAL_ERR:   printf("Error: %s", v->err); break;
     case SVAL_SYM:   printf("%s", v->sym); break;
+    case SVAL_STR:   script_val_print_str(v); break;
     case SVAL_SEXPR: script_val_print_expr(v, '[', ']'); break;
     case SVAL_FUN:   printf("<function>"); break;
   }
@@ -341,6 +412,19 @@ script_val* builtin_if(script_env* e, script_val* a) {
   return x;
 }
   
+script_val* builtin_print(script_env* e, script_val* a) {
+
+  /* Print each argument followed by a space */
+  for (int i = 0; i < a->count; i++) {
+    script_val_print(a->cell[i]); putchar(' ');
+  }
+
+  /* Print a newline and delete arguments */
+  putchar('\n');
+  script_val_del(a);
+
+  return script_val_sexpr();
+}
 
 void script_env_add_builtin(script_env* e, char* name, lbuiltin func) {
   script_val* k = script_val_sym(name);
@@ -358,6 +442,7 @@ void script_env_add_builtins(script_env* e) {
   script_env_add_builtin(e, "/", builtin_div);
   /* Comparison Functions */
   script_env_add_builtin(e, "if", builtin_if);
+  script_env_add_builtin(e, "print", builtin_print);
 }
 
 
