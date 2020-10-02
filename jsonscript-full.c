@@ -285,7 +285,11 @@ script_val* script_env_get(script_env* e, script_val* k) {
     }
   }
   /* If no symbol found return error */
-  return script_val_err("unbound symbol %s!", k->sym);
+  //return script_val_err("unbound symbol %s!", k->sym);
+
+  /* No symbol found - assume it's a simple string */
+  return script_val_str(k->sym);
+
 }
 
 void script_env_put(script_env* e, script_val* k, script_val* v) {
