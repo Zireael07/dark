@@ -234,6 +234,10 @@ script_val* script_val_copy(script_val* v) {
       x->sym = malloc(strlen(v->sym) + 1);
       strcpy(x->sym, v->sym); break;
 
+    case SVAL_STR:
+      x->str = malloc(strlen(v->str) + 1);
+      strcpy(x->str, v->str); break;
+
     /* Copy Lists by copying each sub-expression */
     case SVAL_SEXPR:
       x->count = v->count;
@@ -430,6 +434,19 @@ script_val* builtin_print(script_env* e, script_val* a) {
   return script_val_sexpr();
 }
 
+//call game function
+script_val* builtin_spawn(script_env* e, script_val* a) {
+  /* Pop the first element */
+  script_val* x = script_val_pop(a, 0);
+  char* str = x->str;
+  Point pt = level_get_open_point();
+	printf("Trying to spawn %s at x %d y %d ", str, pt.x, pt.y);
+	spawn_NPC(pt.x, pt.y, str);
+  /* Delete argument list and return */
+  script_val_del(a);
+  return script_val_sexpr(); //dummy
+}
+
 void script_env_add_builtin(script_env* e, char* name, lbuiltin func) {
   script_val* k = script_val_sym(name);
   script_val* v = script_val_fun(func);
@@ -447,6 +464,8 @@ void script_env_add_builtins(script_env* e) {
   /* Comparison Functions */
   script_env_add_builtin(e, "if", builtin_if);
   script_env_add_builtin(e, "print", builtin_print);
+  /* Game functions */
+  script_env_add_builtin(e, "spawn", builtin_spawn);
 }
 
 
@@ -684,7 +703,7 @@ void parse_script() {
 	long lSize;
 	char *input;
 
-	fp = fopen ( "assets/scripts/if.json" , "rb" );
+	fp = fopen ( "assets/scripts/test.json" , "rb" );
 	if( !fp ) { printf("Could not open JSON source"); }
 
 	fseek( fp , 0L , SEEK_END);
