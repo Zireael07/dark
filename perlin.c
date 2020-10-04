@@ -1,3 +1,5 @@
+//based on https://gist.github.com/nowl/828013
+
 #include <stdio.h>
 
 static int SEED = 0;
@@ -65,6 +67,24 @@ float perlin2d(float x, float y, float freq, int depth)
     }
 
     return fin/div;
+}
+
+//based on https://stackoverflow.com/a/28328232
+float perlin_postprocess(float x, float y, float gain, int octaves, float freq, float lacunarity) {
+    int i;
+    float total = 0.0f;
+    //float frequency = 1.0f/(float)hgrid;
+    float amplitude = gain;
+    //float lacunarity = 2.0;
+
+    for (i = 0; i < octaves; ++i)
+    {
+        total += noise2d((float)x * freq, (float)y * freq) * amplitude;         
+        freq *= lacunarity;
+        amplitude *= gain;
+    } 
+
+    return (total);
 }
 
 // int

@@ -91,15 +91,16 @@ void generate_map_noise() {
 	int x;
 	int y;
 
-	// Make a wall all around the edge and fill the rest with floor tiles.
   	for (x = 0; x < MAP_WIDTH; x++)
   	{
      	for (y = 0; y < MAP_HEIGHT; y++)	
     	{
 			float i = (float)x/(float)MAP_WIDTH;
 			float j = (float)y/(float)MAP_HEIGHT;
-			float n = noise2d(i,j); //*255;
-			if (n > 50) {
+			//float n = noise2d(i,j); //*255;
+			// ~ ~ gain octaves freq lacunarity
+			float n = perlin_postprocess(x,y, 0.5, 1, 0.1, 0.5);
+			if (n > 55) {
 				set_tile(x,y, tile_floor);
 			} else {
 				set_tile(x,y, tile_wall);
