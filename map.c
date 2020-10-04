@@ -1,4 +1,7 @@
 /* Map Management */
+
+#include "perlin.c"
+
 // Defines are per file only?
 #define MAP_WIDTH	80
 #define MAP_HEIGHT	40
@@ -55,7 +58,7 @@ Point level_get_open_point() {
 	}
 }
 
-void generate_map() {
+void generate_map_arena() {
 	int x;
 	int y;
 
@@ -83,6 +86,30 @@ void generate_map() {
 	py = rand() % MAP_HEIGHT;
 	set_tile(px,py, tile_wall);
 }
+
+void generate_map_noise() {
+	int x;
+	int y;
+
+	// Make a wall all around the edge and fill the rest with floor tiles.
+  	for (x = 0; x < MAP_WIDTH; x++)
+  	{
+     	for (y = 0; y < MAP_HEIGHT; y++)	
+    	{
+			float i = (float)x/(float)MAP_WIDTH;
+			float j = (float)y/(float)MAP_HEIGHT;
+			float n = noise2d(i,j); //*255;
+			if (n > 50) {
+				set_tile(x,y, tile_floor);
+			} else {
+				set_tile(x,y, tile_wall);
+			}
+		}
+	}
+
+}
+
+
 
 bool is_wall(i32 x, i32 y) {
 	return get_tile(x,y) == tile_wall;

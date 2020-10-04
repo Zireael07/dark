@@ -308,8 +308,8 @@ game_new()
 	Combat com = {.objectId = player->id, .attack = 2, .defense = 2};
 	addComponentToGameObject(player, COMP_COMBAT, &com);
 
-
-	generate_map();
+	//generate_map_arena();
+	generate_map_noise();
 	
 	Point pt = level_get_open_point();
 	add_NPC(pt.x, pt.y, "Thug", 't', 0xFF0000FF, 8, 1, 1);
