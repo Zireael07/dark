@@ -17,6 +17,25 @@ int Random(int sides) {
 }
 
 
+//workaround the fact we can't return arrays from functions in C
+struct rolls_struct
+{
+	int rolls[20]; // max number of dice rolled is 20
+};
+
+// a custom RPG system based on d2 (aka coin toss)
+struct rolls_struct skill_check(int level) {
+	struct rolls_struct r;
+	int num_d = 20-level;
+	for (int i = 0; i < num_d; i++) {
+		int roll = rand() % 2; //between 0 and 1
+		r.rolls[i] = roll;
+	}
+
+	return r;
+}
+
+
 //combat
 void health_check_death(GameObject *go) {
 	Health *h = (Health *)getComponentForGameObject(go, COMP_HEALTH);
@@ -50,11 +69,30 @@ void combatAttack(GameObject *attacker, GameObject *defender) {
 
 	i32 damage = att->attack;
 
-	//just a random check
-	int test = Random(6);
-	char *test_msg = String_Create("check: %d, %s", test, test > 4 ? "passed" : "failed" );
-	add_message(test_msg, 0xFFFFFFFF);
-	String_Destroy(test_msg);
+	//a proper skill check
+	//int test = Random(10);
+	int level = 1;
+	struct rolls_struct rolls = skill_check(level);
+
+	//for player only
+	if (attacker == player) {
+		//display the roll
+		char *test_msg = String_Create(" ");
+		int num_d = 20-level;
+		int sum = 0;
+		for (int i = 0; i < num_d; i++) {
+			char *str = String_Append(test_msg, " %d", rolls.rolls[i]);
+			strcpy(test_msg, str);
+			sum += rolls.rolls[i];
+		}
+
+		char *stri = String_Append(test_msg, " = %d", sum);
+		strcpy(test_msg, stri);
+
+		//char *test_msg = String_Create("check: %d, %s", 1, test > 4 ? "passed" : "failed" );
+		add_message(test_msg, 0xFFFFFFFF);
+		String_Destroy(test_msg);
+	}
 
 	//for player only
 	if (attacker == player) {
