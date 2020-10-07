@@ -11,6 +11,12 @@ void add_message(char *msg, u32 color);
 
 /* Low-level game stuff */
 
+//dice
+int Random(int sides) {
+	return ( rand() % sides)+ 1;
+}
+
+
 //combat
 void health_check_death(GameObject *go) {
 	Health *h = (Health *)getComponentForGameObject(go, COMP_HEALTH);
@@ -43,6 +49,12 @@ void combatAttack(GameObject *attacker, GameObject *defender) {
 	Name *name_def = (Name *)getComponentForGameObject(defender, COMP_NAME);
 
 	i32 damage = att->attack;
+
+	//just a random check
+	int test = Random(6);
+	char *test_msg = String_Create("check: %d, %s", test, test > 4 ? "passed" : "failed" );
+	add_message(test_msg, 0xFFFFFFFF);
+	String_Destroy(test_msg);
 
 	//for player only
 	if (attacker == player) {
