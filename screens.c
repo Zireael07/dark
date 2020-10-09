@@ -67,6 +67,7 @@ void draw_map(PT_Console *console){
 	}
 }
 
+//debug overlays
 void debug_draw_Dijkstra(PT_Console *console){
 	int x;
 	int y;
@@ -80,6 +81,36 @@ void debug_draw_Dijkstra(PT_Console *console){
 				asciiChar ch = 48 + val;
 				PT_ConsolePutCharAt(console, ch, x, y, 0xFFFFFFFF, 0x000000FF);
 			}
+		}
+	}
+}
+
+void debug_draw_free_columns(PT_Console *console) {
+	int x;
+	int y;
+	
+	for (x = 0; x < MAP_WIDTH; x++)
+  	{
+     	for (y = 0; y < MAP_HEIGHT; y++)	
+    	{
+			i32 val = columns_map[x][y];
+			asciiChar ch = 48 + val;
+			PT_ConsolePutCharAt(console, ch, x, y, 0xFFFFFFFF, 0x000000FF);
+		}
+	}
+}
+
+void debug_draw_free_floors(PT_Console *console){
+	int x;
+	int y;
+	
+	for (y = 0; y < MAP_HEIGHT; y++)
+  	{
+     	for (x = 0; x < MAP_WIDTH; x++)	
+    	{
+			i32 val = floor_map[y][x];
+			asciiChar ch = 48 + val;
+			PT_ConsolePutCharAt(console, ch, x, y, 0xFFFFFFFF, 0x000000FF);
 		}
 	}
 }
@@ -109,6 +140,8 @@ internal void gameRender(PT_Console *console){
 
 	//debug Dijkstra map
 	//debug_draw_Dijkstra(console);
+
+	//debug_draw_free_floors(console);
 }
 
 internal void statsRender(PT_Console *console) {
