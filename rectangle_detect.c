@@ -1,6 +1,11 @@
 global_variable int (*columns_map)[MAP_HEIGHT] = NULL;
 global_variable int (*floor_map)[MAP_WIDTH] = NULL;
 
+typedef struct {
+    i32 x; i32 y; i32 w; i32 h; int area;
+} Rect_Area;
+
+
 //step one of finding biggest area of floor in matrix
 void NumUnbrokenFloors_columns() {
 	
@@ -81,63 +86,99 @@ int peek(stack *s){
     return s->array[s->top];
 }
 
-int largestRectangleArea(int* heights, int heightsSize){
-    if(heightsSize==0)
-        return 0;
+Rect_Area largestRectangleArea(int* heights, int heightsSize){
+    // if(heightsSize==0)
+    //     return 0;
     stack *s=create_stack(heightsSize);
     int max_area=0;
     int area=0;
     int i=0;
     int top=0;
 
+    int w = 0;
+
+    //dummy
+    Rect_Area rect_a = {0,0,0,0,0}; 
+
     for(i=0;i<heightsSize;){
         if(is_empty(s) || heights[peek(s)]<=heights[i])
             push(s, i++);
         else{
+            //it's not higher, pop from stack
             top=pop(s);
-            if(is_empty(s))
-                area=heights[top]*i;
-            else
-                area=heights[top]*(i-peek(s)-1);
-            if(area>max_area)
+            if(is_empty(s)) {
+                w = i;
+                area=heights[top]*w;
+            }
+            else {
+                w = (i-peek(s)-1);
+                area=heights[top]*w;
+            }
+                
+            if(area>max_area && area > 0) {
                 max_area=area;
+                //this is bottom-up, rect is top-down
+                //C99 compound literals
+                rect_a = (Rect_Area){i-w,0, w, heights[top], area};
+            }
+                
         }
     }
 
     while(!is_empty(s)){
         top=pop(s);
 
-        if(is_empty(s))
-            area=heights[top]*i;
-        else
-            area=heights[top]*(i-peek(s)-1);
+        if(is_empty(s)) {
+            w = i;
+            area=heights[top]*w;
+        }
+        else {
+            w = (i-peek(s)-1);
+            area=heights[top]*w;
+        }
 
-        if(area>max_area)
-            max_area=area; 
+        if(area>max_area && area > 0) {
+            max_area=area;
+            //this is bottom-up, rect is top-down
+            //C99 compound literals
+            rect_a = (Rect_Area){i-w,0, w, heights[top], area};
+        }
+           
     }
     free(s);
-    return max_area;
+
+    //return max_area;
+    return rect_a;
 }
 
-int maximalRectangle(){
-    int area=0, max_area=0;
+Rect_Area maximalRectangle(){
+    int max_area=0;
 
-    int* dp=(int*)(calloc(sizeof(int),MAP_HEIGHT));
+    int* dp=(int*)(calloc(sizeof(int),MAP_WIDTH));
 
+    Rect_Area res = {0,0,0,0,0};
 
-    for(int x=0; x<MAP_WIDTH; x++){
-        for(int y=0; y<MAP_HEIGHT; y++){
+    for(int y=0; y<MAP_HEIGHT; y++){
+        for(int x=0; x<MAP_WIDTH; x++){
             // note: the values here are our histogram heights
-            if(floor_map[y][x]==0)
-                dp[y]=0;
-            else
-                dp[y]+=floor_map[y][x]-0;
-        }
-        area=largestRectangleArea(dp, MAP_HEIGHT);
+            dp[x] = floor_map[y][x];
 
-        if(area>max_area)
-            max_area=area;
+            // if(floor_map[y][x]==0)
+            //     dp[x]=0;
+            // else
+            //     dp[x]=floor_map[y][x];
+        }
+        Rect_Area rec = largestRectangleArea(dp, MAP_WIDTH);
+
+        if(rec.area>max_area)
+            max_area=rec.area;
+            rec.y = y-rec.h+1; // rect is top-down
+            res = rec; //assign to result
     }
     free(dp);
-    return max_area;
+
+
+    printf("Rect: x: %d, y: %d, w: %d h: %d area: %d\n", res.x, res.y, res.w, res.h, res.area);
+    return res;
+    //return max_area;
 }
