@@ -24,6 +24,7 @@ void draw_map(PT_Console *console){
 	int tile; 
 	asciiChar glyph;
 	u32 fgColor;
+	u32 clr;
 
 	for (x = 0; x < MAP_WIDTH; x++)
   	{
@@ -32,6 +33,7 @@ void draw_map(PT_Console *console){
 			if (fovMap[x][y] > 0 || seenMap[x][y] > 0) {
 				tile = map[x][y];
 				//tile = get_tile(x,y);
+				clr = color_white;
 
 				switch (tile)
 				{
@@ -46,6 +48,12 @@ void draw_map(PT_Console *console){
 						glyph = '#';
 						break;
 					}
+					case tile_grass:
+					{
+						glyph = ',';
+						clr = 0x009900FF;
+						break;
+					}
 					default:
 					{
 						glyph = 'x';
@@ -56,7 +64,7 @@ void draw_map(PT_Console *console){
 					fgColor = color_light_gray;
 				}
 				if (fovMap[x][y] > 0) {
-					fgColor = color_white;
+					fgColor = clr;
 				}
 				
 				
