@@ -12,12 +12,17 @@ typedef struct {
 	u32 x, y;
 } Point;
 
+typedef struct {
+    i32 x; i32 y; i32 w; i32 h; int area;
+} Rect_Area;
+
 // Tile types; these are used on the map
 typedef enum
 {
   tile_error = 0,
   tile_floor,
   tile_wall,
+  tile_grass,
 } tile_t;
 
 /*
@@ -111,6 +116,14 @@ void generate_map_noise() {
 }
 
 
+void paint_rect(int tile, Rect_Area rect) {
+	for (int x = rect.x; x < rect.x+rect.w-1; x++){
+		for (int y = rect.y; y < rect.y+rect.h-1; y++){
+			set_tile(x,y,tile);
+		}
+	}
+}
+
 
 bool is_wall(i32 x, i32 y) {
 	return get_tile(x,y) == tile_wall;
@@ -167,4 +180,13 @@ float getDistance(int sx, int sy, int tx, int ty) {
 	int dx=sx-tx;
 	int dy=sy-ty;
 	return sqrt((float)(dx*dx+dy*dy));
+}
+
+#include "rectangle_detect.c"
+
+void map_postprocess(){
+	NumUnbrokenFloors_columns();
+	GetUnbrokenFloors();
+	Rect_Area max_rect = maximalRectangle();
+	paint_rect(tile_grass, max_rect);
 }

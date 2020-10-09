@@ -1,10 +1,6 @@
 global_variable int (*columns_map)[MAP_HEIGHT] = NULL;
 global_variable int (*floor_map)[MAP_WIDTH] = NULL;
 
-typedef struct {
-    i32 x; i32 y; i32 w; i32 h; int area;
-} Rect_Area;
-
 
 //step one of finding biggest area of floor in matrix
 void NumUnbrokenFloors_columns() {

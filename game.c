@@ -376,6 +376,9 @@ game_new()
 	fov_calculate(playerPos->x, playerPos->y, fovMap);
 	//Dijkstra map
 	generate_Dijkstra_map(playerPos->x, playerPos->y);
+	
+	map_postprocess();
+
 }
 
 internal void
