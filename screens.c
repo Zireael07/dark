@@ -215,8 +215,10 @@ internal void messageLogRender(PT_Console *console) {
 	if (messageLog == NULL) { return; }
 
 	// Get the last 5 messages from the log
-	ListElement *e = list_tail(messageLog);
-	i32 msgCount = list_size(messageLog);
+	//ListElement *e = list_tail(messageLog);
+	//i32 msgCount = list_size(messageLog);
+	node_t *n = messageLog->last;
+	int msgCount = messageLog->size;
 	u32 row = 4;
 	u32 col = 0;
 
@@ -226,12 +228,14 @@ internal void messageLogRender(PT_Console *console) {
 		msgCount = 5;
 	}
 
-	for (i32 i = 0; i < msgCount; i++) {
-		if (e != NULL) {
-			Message *m = (Message *)list_data(e);
+	for (int i = 0; i < msgCount; i++) {
+		if (n != NULL) {
+			//Message *m = (Message *)list_data(e);
+			Message *m = n->data;
 			PT_Rect rect = {.x = col, .y = row, .w = LOG_WIDTH, .h = 1};
 			PT_ConsolePutStringInRect(console, m->msg, rect, false, m->fgColor, 0x00000000);
-			e = list_prev(e);			
+			//e = list_prev(e);			
+			n = n->prev;
 			row -= 1;
 		}
 	}

@@ -33,17 +33,19 @@ global_variable bool should_quit = false;
 
 #include "json.h"
 
-// our own stuff starts here
-#include "utils.c"
-#include "list.c"
-
 /* Message Log */
 typedef struct {
 	char *msg;
 	u32 fgColor;
 } Message;
 
-global_variable List *messageLog = NULL;
+
+// our own stuff starts here
+#include "utils.c"
+#include "doubly_linked_list.c"
+#include "list.c"
+
+global_variable double_linkedlist_t *messageLog = NULL;
 
 #include "pt_console.c"
 #include "pt_ui.c"
@@ -68,6 +70,11 @@ struct context {
 
 /* Message */
 void add_message(char *msg, u32 color) {
+	if (messageLog == NULL) {
+		messageLog = create_double_linkedlist();
+	}
+
+
 	Message *m = malloc(sizeof(Message));
 	if (msg != NULL) {
 		//see comment in ecs.c
@@ -79,19 +86,21 @@ void add_message(char *msg, u32 color) {
 	m->fgColor = color;
 
 	// Add message to log
-	if (messageLog == NULL) {
-		messageLog = list_new(NULL);
-	}
-	list_insert_after(messageLog, list_tail(messageLog), m);
+	// if (messageLog == NULL) {
+	// 	messageLog = list_new(NULL);
+	// }
+	//list_insert_after(messageLog, list_tail(messageLog), m);
+	list_append(messageLog, create_node(m));
 
 	// If our log has exceeded 20 messages, cull the older messages
-	if (list_size(messageLog) > 20) {
-		list_remove(messageLog, NULL);  // Remove the oldest message
+	if (messageLog->size > 20) {
+		//printf("Removing the oldest message...\n");
+		list_delete(messageLog, messageLog->head);  // Remove the oldest message
 	}
 
 	// DEBUG
-	printf("%s\n", msg);
-	printf("Message Log Size: %d\n", list_size(messageLog));
+	// printf("%s\n", msg);
+	// printf("Message Log Size: %d\n", list_size(messageLog));
 	// DEBUG
 }
 
