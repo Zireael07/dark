@@ -70,6 +70,8 @@ struct context {
 
 /* Message */
 void add_message(char *msg, u32 color) {
+	// use a different double linked list implementation to work around a bug
+	// see comment at line 128 in list.c
 	if (messageLog == NULL) {
 		messageLog = create_double_linkedlist();
 	}

@@ -125,6 +125,7 @@ void * list_remove(List *list, ListElement *element) {
 	}
 
 	if (element == NULL) {
+		//Something seems to be bugged in this branch...
 		data = list->head->data;
 		elementToRemove = list->head;
 		list->head = list->head->next;
@@ -157,6 +158,7 @@ void * list_remove(List *list, ListElement *element) {
 		}
 	}
 
+	// ocassionally, a double free or corruption seems to happen here
 	free(elementToRemove);
 
 	list->size -= 1;
