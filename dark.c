@@ -257,6 +257,7 @@ int main() {
 	}
 # endif
 
+	SDL_DestroyTexture(screenTexture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 
