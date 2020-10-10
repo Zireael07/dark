@@ -189,7 +189,7 @@ var Module = typeof Module !== 'undefined' ? Module : {};
     }
   
    }
-   loadPackage({"files": [{"filename": "/assets/terminal16x16.png", "start": 0, "end": 8240, "audio": 0}, {"filename": "/assets/npcs.json", "start": 8240, "end": 10075, "audio": 0}], "remote_package_size": 10075, "package_uuid": "31f3c6f6-677c-41e8-bddb-40d0c92140a1"});
+   loadPackage({"files": [{"filename": "/assets/terminal16x16.png", "start": 0, "end": 8240, "audio": 0}, {"filename": "/assets/npcs.json", "start": 8240, "end": 10075, "audio": 0}], "remote_package_size": 10075, "package_uuid": "720b0bbf-7464-4f8d-ad01-ac21e1bf1c6b"});
   
   })();
   
@@ -1835,9 +1835,9 @@ var tempI64;
 // === Body ===
 
 var ASM_CONSTS = {
-  1874: function() {FS.syncfs(function (err) { if (!err) { console.log("Game saved successfully.") } });},  
- 2243: function() {FS.mkdir('/save'); FS.mount(IDBFS, {}, '/save');},  
- 2296: function() {FS.syncfs(true, function (err) { if (!err) { console.log("Successfully mounted and synced the filesystem"); ccall('game_load', 'v'); } });},  
+  1899: function() {FS.syncfs(function (err) { if (!err) { console.log("Game saved successfully.") } });},  
+ 2242: function() {FS.mkdir('/save'); FS.mount(IDBFS, {}, '/save');},  
+ 2295: function() {FS.syncfs(true, function (err) { if (!err) { console.log("Successfully mounted and synced the filesystem"); ccall('game_load', 'v'); } });},  
  4682: function($0) {var str = UTF8ToString($0) + '\n\n' + 'Abort/Retry/Ignore/AlwaysIgnore? [ariA] :'; var reply = window.prompt(str, "i"); if (reply === null) { reply = "i"; } return allocate(intArrayFromString(reply), 'i8', ALLOC_NORMAL);},  
  40620: function($0, $1, $2) {var w = $0; var h = $1; var pixels = $2; if (!Module['SDL2']) Module['SDL2'] = {}; var SDL2 = Module['SDL2']; if (SDL2.ctxCanvas !== Module['canvas']) { SDL2.ctx = Module['createContext'](Module['canvas'], false, true); SDL2.ctxCanvas = Module['canvas']; } if (SDL2.w !== w || SDL2.h !== h || SDL2.imageCtx !== SDL2.ctx) { SDL2.image = SDL2.ctx.createImageData(w, h); SDL2.w = w; SDL2.h = h; SDL2.imageCtx = SDL2.ctx; } var data = SDL2.image.data; var src = pixels >> 2; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = 0xff; src++; dst += 4; } } else { if (SDL2.data32Data !== data) { SDL2.data32 = new Int32Array(data.buffer); SDL2.data8 = new Uint8Array(data.buffer); } var data32 = SDL2.data32; num = data32.length; data32.set(HEAP32.subarray(src, src + num)); var data8 = SDL2.data8; var i = 3; var j = i + 4*num; if (num % 8 == 0) { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; } } else { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; } } } SDL2.ctx.putImageData(SDL2.image, 0, 0); return 0;},  
  42099: function($0, $1, $2, $3, $4) {var w = $0; var h = $1; var hot_x = $2; var hot_y = $3; var pixels = $4; var canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h; var ctx = canvas.getContext("2d"); var image = ctx.createImageData(w, h); var data = image.data; var src = pixels >> 2; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = (val >> 24) & 0xff; src++; dst += 4; } } else { var data32 = new Int32Array(data.buffer); num = data32.length; data32.set(HEAP32.subarray(src, src + num)); } ctx.putImageData(image, 0, 0); var url = hot_x === 0 && hot_y === 0 ? "url(" + canvas.toDataURL() + "), auto" : "url(" + canvas.toDataURL() + ") " + hot_x + " " + hot_y + ", auto"; var urlBuf = _malloc(url.length + 1); stringToUTF8(url, urlBuf, url.length + 1); return urlBuf;},  
