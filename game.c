@@ -77,20 +77,27 @@ void combatAttack(GameObject *attacker, GameObject *defender) {
 	//for player only
 	if (attacker == player) {
 		//display the roll
-		char *test_msg = String_Create(" ");
 		int num_d = 20-level;
+		char out[255];
+		char *test_msg = String_Create(" ");
 		int sum = 0;
 		for (int i = 0; i < num_d; i++) {
-			char *str = String_Append(test_msg, " %d", rolls.rolls[i]);
-			strcpy(test_msg, str);
+			if (i == 0) {
+				char *str = String_Append(test_msg, "%d ", rolls.rolls[i]);
+				strcpy(out, str);
+			} else {
+				char *str = String_Append(out, "%d ", rolls.rolls[i]);
+				strcpy(out, str);
+			}
+
 			sum += rolls.rolls[i];
 		}
 
-		char *stri = String_Append(test_msg, " = %d", sum);
-		strcpy(test_msg, stri);
+		char *stri = String_Append(out, " = %d", sum);
+		strcpy(out, stri);
 
 		//char *test_msg = String_Create("check: %d, %s", 1, test > 4 ? "passed" : "failed" );
-		add_message(test_msg, 0xFFFFFFFF);
+		add_message(out, 0xFFFFFFFF);
 		String_Destroy(test_msg);
 	}
 
