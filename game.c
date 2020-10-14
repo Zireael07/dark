@@ -340,7 +340,8 @@ void spawn_NPC(u8 x, u8 y, char *name){
 
 	if (npc_data != NULL){
 		printf("Found NPC data for: %s\n", name);
-		add_NPC(x,y, name, (asciiChar)(npc_data->glyph[0]), 0xFFFFFFFF, (i32)(npc_data->hp), (i32)(npc_data->pow), (i32)(npc_data->def));
+		u32 fgColor = rgb_color(npc_data->r, npc_data->g, npc_data->b);
+		add_NPC(x,y, name, (asciiChar)(npc_data->glyph[0]), fgColor, (i32)(npc_data->hp), (i32)(npc_data->pow), (i32)(npc_data->def));
 	}
 }
 

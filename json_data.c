@@ -6,6 +6,9 @@ typedef struct {
 	int hp;
 	int def;
 	int pow;
+	int r;
+	int g;
+	int b;
 } JSON_data;
 
 global_variable JSON_data loadedNPCs[200];
@@ -42,6 +45,17 @@ void JSON_parse_npc(struct json_object_element_s* npc){
 	struct json_string_s* glyph_value = json_value_as_string(glyph->value);
 	//printf("Glyph: %s\n", glyph_value->string);
 	npc_data->glyph = glyph_value->string;
+	struct json_object_element_s* fg_o = glyph->next;
+	//printf("Fg: %s\n", fg_o->name->string);
+	struct json_array_s* fg = json_value_as_array(fg_o->value);
+	struct json_array_element_s* fg_el = fg->start;
+	struct json_number_s* fg_r = json_value_as_number(fg_el->value);
+	struct json_number_s* fg_g = json_value_as_number(fg_el->next->value);
+	struct json_number_s* fg_b = json_value_as_number(fg_el->next->next->value);
+	printf("Rgb: %s %s %s\n", fg_r->number, fg_g->number, fg_b->number);
+	npc_data->r = atoi(fg_r->number);
+	npc_data->g = atoi(fg_g->number);
+	npc_data->b = atoi(fg_b->number);
 	struct json_object_element_s* blocks = renderable->next;
 	struct json_string_s* blocks_value = json_value_is_true(blocks->value); // returns non-zero if true else 0
 	//printf("Blocks: %d\n", blocks_value);

@@ -26,4 +26,8 @@ int xtoi(char *hexstring) {
 	return i;
 }
 
+u32 rgb_color(int r, int g, int b) {
+	return ((r << 24) | (g << 16) | (b << 8) | 255);
+}
+
 //asprintf definition deleted because we no longer need it
